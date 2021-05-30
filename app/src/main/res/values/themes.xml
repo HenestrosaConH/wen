@@ -1,0 +1,90 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Main theme without action bar. -->
+    <style name="Theme.Wen" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:itemTextAppearance">@style/TextAppearance</item>
+        <item name="alertDialogTheme">@style/AlertDialogTheme</item>
+    </style>
+    <!-- Main theme including action bar -->
+    <style name="Theme.Wen.Toolbar" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="actionOverflowMenuStyle">@style/Overflow</item>
+        <item name="android:itemTextAppearance">@style/TextAppearance</item>
+        <item name="alertDialogTheme">@style/AlertDialogTheme</item>
+    </style>
+
+    <!-- Splash -->
+    <style name="Theme.Wen.SplashScreen">
+        <item name="android:windowBackground">@drawable/splash_screen</item>
+    </style>
+
+    <!--Action bar items text color -->
+    <style name="TextAppearance">
+        <item name="android:textColor">@color/colorPrimaryText</item>
+    </style>
+
+    <!-- Action bar theme of MainActivity -->
+    <style name="Theme.Wen.AppBarOverlay" parent="ThemeOverlay.AppCompat.ActionBar">
+        <item name="fontFamily">@font/ubuntu_regular</item>
+        <item name="android:textSize">17sp</item>
+        <item name="background">@color/colorPrimary</item>
+        <item name="android:colorSecondary" tools:targetApi="n_mr1">@color/colorBackground</item>
+        <item name="android:textColorPrimary">@color/colorTextIcon</item>
+        <item name="android:textColorSecondary">@color/colorTextIcon</item>
+        <item name="actionOverflowMenuStyle">@style/Overflow</item>
+    </style>
+
+    <!-- Action bar theme of ChatActivity -->
+    <style name="Theme.Wen.ChatAppBar" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="android:textColorSecondary">@color/colorTextIcon</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="actionOverflowMenuStyle">@style/Overflow</item>
+        <item name="android:itemTextAppearance">@style/TextAppearance</item>
+    </style>
+
+    <!-- Overflow from all actions bar -->
+    <style name="Overflow" parent="Widget.AppCompat.PopupMenu.Overflow">
+        <item name="android:popupBackground">@color/colorBackground</item>
+    </style>
+
+    <!-- PopupOverlay -->
+    <style name="Theme.Wen.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <!-- Profile Dialog -->
+    <style name="ThemeDialogAnimation">
+        <item name="android:windowEnterAnimation">@android:anim/fade_in</item>
+        <item name="android:windowExitAnimation">@android:anim/fade_out</item>
+    </style>
+
+    <style name="ThemeDialog" parent="@android:style/Theme.Dialog">
+        <item name="android:windowAnimationStyle">@style/ThemeDialogAnimation</item>
+    </style>
+
+    <!-- AlertDialog -->
+    <style name="AlertDialogTheme" parent="ThemeOverlay.AppCompat.Dialog.Alert">
+        <item name="buttonBarNegativeButtonStyle">@style/NegativeButtonStyle</item>
+        <item name="buttonBarPositiveButtonStyle">@style/PositiveButtonStyle</item>
+    </style>
+
+    <style name="NegativeButtonStyle" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
+        <item name="android:textColor">@android:color/holo_red_light</item>
+    </style>
+
+    <style name="PositiveButtonStyle" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
+        <item name="android:textColor">@android:color/holo_green_light</item>
+    </style>
+
+    <!-- Main tab text -->
+    <style name="CustomTabText" parent="TextAppearance.Design.Tab">
+        <item name="android:textSize">20sp</item>
+        <item name="android:radius">4dp</item>
+        <item name="android:fontFamily">@font/ubuntu_bold</item>
+    </style>
+
+</resources>

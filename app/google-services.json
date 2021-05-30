@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "149024666320",
+    "firebase_url": "https://videocall-37527-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "videocall-37527",
+    "storage_bucket": "videocall-37527.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:149024666320:android:feae3e02d0d8b60277a4d5",
+        "android_client_info": {
+          "package_name": "com.example.videomeeting"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "149024666320-tsc1ag488n5sn624eepp4407852g2uhf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.videomeeting",
+            "certificate_hash": "63f95caa984d0c54e328a8f75850651b62df5af9"
+          }
+        },
+        {
+          "client_id": "149024666320-65j5oqp0q6kgcn417jth8tj0c1n4ohuv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlTUe8YrSwQipPpZJuuI89iLI3tGIyjbQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "149024666320-65j5oqp0q6kgcn417jth8tj0c1n4ohuv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

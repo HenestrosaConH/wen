@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".fragments.RecentChatsFragment">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/callsRV"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+    <TextView
+        android:id="@+id/errorMessageTV"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="17dp"
+        android:fontFamily="@font/ubuntu_regular"
+        android:gravity="center"
+        android:includeFontPadding="false"
+        android:textColor="@android:color/holo_red_light"
+        android:textSize="@dimen/_13ssp"
+        android:visibility="gone" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/groupFB"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="80dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:background="@color/colorPrimary"
+        android:visibility="gone"
+        android:contentDescription="@string/app_name"
+        tools:ignore="KeyboardInaccessibleWidget"
+        app:srcCompat="@drawable/ic_group" />
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/welcomingCV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:strokeWidth="2dp"
+        app:strokeColor="@color/colorAccent"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        android:layout_margin="30dp"
+        android:visibility="gone"
+        app:cardPreventCornerOverlap="false"
+        app:cardUseCompatPadding="true"
+        android:layout_gravity="top">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fontFamily="@font/ubuntu_regular"
+            android:gravity="center"
+            android:layout_margin="14dp"
+            android:includeFontPadding="false"
+            android:textColor="@color/colorPrimaryText"
+            android:textSize="18sp"
+            android:text="@string/welcoming_message_call" />
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/callsListFB"
+        android:layout_gravity="bottom|end"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="80dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:backgroundTint="@color/colorAccent"
+        app:rippleColor="@color/colorRipple"
+        android:src="@drawable/ic_call_add"
+        android:contentDescription="@string/app_name"
+        app:tint="@color/colorTextIcon"
+        tools:ignore="KeyboardInaccessibleWidget" />
+
+</FrameLayout>

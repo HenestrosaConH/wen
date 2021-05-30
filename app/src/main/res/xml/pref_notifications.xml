@@ -1,0 +1,81 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory app:title="@string/general">
+
+        <SwitchPreferenceCompat
+            app:key="pref_display_notif"
+            app:icon="@drawable/ic_notifications_on"
+            app:defaultValue="true"
+            app:title="@string/display_notifications"
+            app:summaryOn="@string/on"
+            app:summaryOff="@string/off"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/private_chats">
+
+        <Preference
+            app:key="pref_chat_notification_sound"
+            app:title="@string/notification_tone"
+            app:icon="@drawable/ic_ringtone"
+            app:useSimpleSummaryProvider="true"/>
+
+        <ListPreference
+            app:key="pref_chat_vibrate"
+            app:defaultValue="defaultVibration"
+            app:useSimpleSummaryProvider="true"
+            app:entries="@array/vibration_values"
+            app:icon="@drawable/ic_vibration"
+            app:entryValues="@array/vibration_ids"
+            app:title="@string/vibrate" />
+
+        <SwitchPreferenceCompat
+            app:key="pref_chat_popup"
+            app:defaultValue="true"
+            app:icon="@drawable/ic_popup"
+            app:title="@string/popup_notification"
+            app:summaryOff="@string/no_popup"
+            app:summaryOn="@string/always_show_popup"/>
+
+        <ListPreference
+            app:key="pref_chat_light"
+            app:icon="@drawable/ic_led"
+            app:defaultValue="defaultLight"
+            app:summary="@string/light_summary"
+            app:entries="@array/light_values"
+            app:entryValues="@array/light_ids"
+            app:title="@string/led_color" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/calls">
+
+        <Preference
+            app:key="pref_call_ringtone"
+            app:title="@string/ringtone"
+            app:icon="@drawable/ic_ringtone"
+            app:useSimpleSummaryProvider="true"/>
+
+        <ListPreference
+            app:key="pref_call_vibrate"
+            app:defaultValue="defaultVibration"
+            app:entries="@array/vibration_values"
+            app:entryValues="@array/vibration_ids"
+            app:title="@string/vibrate"
+            app:icon="@drawable/ic_vibration"
+            app:useSimpleSummaryProvider="true"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="Info">
+
+    <Preference
+        android:key="pref_intent_notifications"
+        app:title="@string/info_notifications"
+        app:icon="@drawable/ic_info">
+    </Preference>
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

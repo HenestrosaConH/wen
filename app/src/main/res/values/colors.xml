@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#1F2963</color>
+    <color name="colorPrimaryLight">#5490FF</color>
+    <color name="colorAccent">#FF5722</color>
+    <color name="colorPrimaryText">#212121</color>
+    <color name="colorSecondaryText">#757575</color>
+    <color name="colorDivider">#BDBDBD</color>
+    <color name="colorBackground">#FFFFFF</color>
+    <color name="colorTextIcon">#FFFFFF</color>
+    <color name="colorMeetingInvitationStart">#4004BB</color>
+    <color name="colorMeetingInvitationEnd">#8A1AAA</color>
+    <color name="colorHintText">#BDBDBD</color>
+    <color name="colorIndicatorInactive">#c0c0c0</color>
+    <color name="colorRipple">#88FFFFFF</color>
+    <!-- Icon change image-->
+    <color name="colorChange">#FF9800</color>
+    <!-- Message box background color (activity_chat) -->
+    <color name="colorMessageBackground">#DCD6CE</color>
+    <color name="colorMessageSent">#5490FF</color>
+    <color name="colorMessageReceived">#1F2963</color>
+    <!-- Scrollbar background -->
+    <color name="colorPrimaryTransparent">#331F2963</color>
+</resources>

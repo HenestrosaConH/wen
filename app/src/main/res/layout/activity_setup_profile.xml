@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:scrollbars="none"
+    android:overScrollMode="never"
+    tools:context=".activities.SetupProfileActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/profile_info"
+            android:fontFamily="@font/ubuntu_bold"
+            android:textColor="@color/colorPrimary"
+            android:textSize="20sp"
+            android:layout_marginTop="50dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:text="@string/please_provide_your_name_and_an_optional_profile_photo"
+            android:gravity="center"
+            android:textColor="@color/colorPrimaryText"
+            android:textSize="16sp"
+            android:fontFamily="@font/ubuntu_regular" />
+
+        <ImageView
+            android:id="@+id/profileIV"
+            android:layout_width="180dp"
+            android:layout_height="180dp"
+            android:layout_marginTop="30dp"
+            android:background="@drawable/background_user_icon"
+            android:src="@drawable/ic_user_borderless"
+            android:padding="20dp"
+            android:layout_gravity="center"
+            android:contentDescription="@string/app_name" />
+
+        <EditText
+            android:id="@+id/usernameET"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="30dp"
+            android:layout_marginStart="30dp"
+            android:inputType="text"
+            android:fontFamily="@font/ubuntu_medium"
+            android:hint="@string/user_name"
+            android:textColorHint="@color/colorHintText"
+            android:importantForAutofill="no" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/setupProfileBT"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="30dp"
+                android:background="@drawable/background_button_send_otp"
+                android:text="@string/next"
+                android:textColor="@color/colorTextIcon"
+                android:fontFamily="@font/ubuntu_bold"
+                android:textSize="16sp" />
+
+            <ProgressBar
+                android:id="@+id/setupProfilePB"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center"
+                android:visibility="gone" />
+
+        </FrameLayout>
+
+    </LinearLayout>
+
+</ScrollView>

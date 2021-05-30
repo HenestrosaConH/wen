@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/callIT"
+        android:icon="@drawable/ic_call"
+        app:iconTint="@color/colorPrimaryDark"
+        android:title="@string/call"
+        android:orderInCategory="0"
+        app:showAsAction="never|withText" />
+
+    <item
+        android:id="@+id/videocallIT"
+        android:icon="@drawable/ic_videocam"
+        app:iconTint="@color/colorPrimaryDark"
+        android:title="@string/video_call"
+        android:orderInCategory="1"
+        app:showAsAction="never|withText" />
+
+    <item
+        android:id="@+id/contactIT"
+        android:icon="@drawable/ic_contact_add"
+        app:iconTint="@color/colorPrimaryDark"
+        android:title="@string/add_contact"
+        android:orderInCategory="2"
+        app:showAsAction="never|withText" />
+
+</menu>

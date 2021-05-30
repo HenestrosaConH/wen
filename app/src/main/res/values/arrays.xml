@@ -1,0 +1,46 @@
+<resources>
+    <string-array name="vibration_values">
+        <item>@string/off</item>
+        <item>@string/default_</item>
+        <item>@string/short_</item>
+        <item>@string/long_</item>
+    </string-array>
+
+    <string-array name="vibration_ids">
+        <item>off</item>
+        <item>defaultVibration</item>
+        <item>short</item>
+        <item>long</item>
+    </string-array>
+
+    <string-array name="light_values">
+        <item>@string/off</item>
+        <item>@string/default_</item>
+        <item>@string/blue</item>
+        <item>@string/cyan</item>
+        <item>@string/green</item>
+        <item>@string/red</item>
+        <item>@string/white</item>
+        <item>@string/yellow</item>
+    </string-array>
+
+    <string-array name="light_ids">
+        <item>off</item>
+        <item>defaultLight</item>
+        <item>blue</item>
+        <item>cyan</item>
+        <item>green</item>
+        <item>red</item>
+        <item>white</item>
+        <item>yellow</item>
+    </string-array>
+    <string name="blue">Blue</string>
+    <string name="cyan">Cyan</string>
+    <string name="green">Green</string>
+    <string name="red">Red</string>
+    <string name="white">White</string>
+    <string name="yellow">Yellow</string>
+    <string name="short_">Short</string>
+    <string name="default_">Default</string>
+    <string name="long_">Long</string>
+</resources>
