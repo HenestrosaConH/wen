@@ -81,6 +81,9 @@ public class NotificationsPrefActivity extends AppCompatActivity {
             bindInfo();
         }
 
+        /**
+         * Setups the global notifications option
+         */
         private void setGlobalNotif() {
             SwitchPreferenceCompat displayNotifications = findPreference("pref_display_notif");
             displayNotifications.setOnPreferenceChangeListener((preference, newValue) -> {
@@ -89,6 +92,9 @@ public class NotificationsPrefActivity extends AppCompatActivity {
             });
         }
 
+        /**
+         * Setups the vibration chat option
+         */
         private void setVibrationChat() {
             ListPreference vibrateChat = findPreference("pref_chat_vibrate");
             vibrateChat.setOnPreferenceChangeListener((preference, newValue) -> {
@@ -97,6 +103,9 @@ public class NotificationsPrefActivity extends AppCompatActivity {
             });
         }
 
+        /**
+         * Setups the popup notification option
+         */
         private void setPopupChat() {
             SwitchPreferenceCompat displayPopupChat = findPreference("pref_chat_popup");
             displayPopupChat.setOnPreferenceChangeListener((preference, newValue) -> {
@@ -107,6 +116,9 @@ public class NotificationsPrefActivity extends AppCompatActivity {
             });
         }
 
+        /**
+         * Setups the light notification option
+         */
         private void setLightChat() {
             ListPreference lightChat = findPreference("pref_chat_light");
             lightChat.setOnPreferenceChangeListener((preference, newValue) -> {
@@ -132,6 +144,9 @@ public class NotificationsPrefActivity extends AppCompatActivity {
             });
         }
 
+        /**
+         * Setups the vibration call option
+         */
         private void setVibrationCall() {
             ListPreference vibrateCall = findPreference("pref_call_vibrate");
             vibrateCall.setOnPreferenceChangeListener((preference, newValue) -> {
@@ -140,6 +155,9 @@ public class NotificationsPrefActivity extends AppCompatActivity {
             });
         }
 
+        /**
+         * Setups the info item option
+         */
         private void bindInfo() {
             Preference info = findPreference("pref_intent_notifications");
             info.setOnPreferenceClickListener(preference -> {
@@ -156,6 +174,9 @@ public class NotificationsPrefActivity extends AppCompatActivity {
             });
         }
 
+        /**
+         * Depending on the preferences of the user, we set a certain notification pattern
+         */
         private void setVibration(String where, String value) {
             String[] vibrationValues = getResources().getStringArray(R.array.vibration_ids);
             if (value.equals(vibrationValues[0]))
@@ -180,6 +201,9 @@ public class NotificationsPrefActivity extends AppCompatActivity {
             }
         }
 
+        /**
+         * Changes the notification sound
+         */
         private boolean changeNotifSound() {
             Intent intent = new Intent(RingtoneManager.ACTION_RINGTONE_PICKER);
             intent.putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION);
@@ -202,6 +226,9 @@ public class NotificationsPrefActivity extends AppCompatActivity {
             return true;
         }
 
+        /**
+         * Changes the call ringtone
+         */
         private boolean changeRingtone() {
             Intent intent = new Intent(RingtoneManager.ACTION_RINGTONE_PICKER);
             intent.putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_RINGTONE);
@@ -235,86 +262,5 @@ public class NotificationsPrefActivity extends AppCompatActivity {
                 else prefManager.putString(CHANNEL_CALLS_RINGTONE_URI, "");
             } else super.onActivityResult(requestCode, resultCode, data);
         }
-
-        /*
-        @RequiresApi(api = Build.VERSION_CODES.O)
-        private void updateChatChannel() {
-            NotificationManager notificationManager = (NotificationManager) activity.getSystemService(NOTIFICATION_SERVICE);
-            notificationManager.deleteNotificationChannel(String.valueOf(CHANNEL_CHATS_ID));
-            CHANNEL_CHATS_ID += 1;
-
-            //Pop up on or off
-            int importance = 4;
-            if (preferenceManager.getSharedPreferences().contains(CHANNEL_CHATS_IMPORTANCE)) {
-                if (preferenceManager.getInt(CHANNEL_CHATS_IMPORTANCE) == 3) importance = 3;
-            }
-
-            NotificationChannel channel = new NotificationChannel(
-                    String.valueOf(CHANNEL_CHATS_ID),
-                    CHANNEL_CHATS_NAME,
-                    importance
-            );
-
-            //Lights
-            if (preferenceManager.getSharedPreferences().contains(CHANNEL_CHATS_LIGHT)) {
-                switch (preferenceManager.getString(CHANNEL_CHATS_LIGHT)) {
-                    case NOTIF_LIGHT_RED:
-                        channel.setLightColor(Color.RED);
-                        break;
-                    case NOTIF_LIGHT_BLUE:
-                        channel.setLightColor(Color.BLUE);
-                        break;
-                    case NOTIF_LIGHT_YELLOW:
-                        channel.setLightColor(Color.YELLOW);
-                        break;
-                    case NOTIF_LIGHT_WHITE:
-                        channel.setLightColor(Color.WHITE);
-                        break;
-                    case NOTIF_LIGHT_PURPLE:
-                        channel.setLightColor(Color.MAGENTA);
-                        break;
-                    case NOTIF_LIGHT_GREEN:
-                        channel.setLightColor(Color.GREEN);
-                        break;
-                    case NOTIF_LIGHT_CYAN:
-                        channel.setLightColor(Color.CYAN);
-                        break;
-                    case PREF_DEFAULT:
-                        channel.setLightColor(Notification.DEFAULT_LIGHTS);
-                        break;
-                    case PREF_OFF:
-                        channel.enableLights(false);
-                }
-            } else channel.setLightColor(Notification.DEFAULT_LIGHTS);
-
-            //Vibration
-            if (preferenceManager.getSharedPreferences().contains(CHANNEL_CHATS_VIBRATION)) {
-                switch (preferenceManager.getString(CHANNEL_CHATS_VIBRATION)) {
-                    case PREF_DEFAULT:
-                        channel.setVibrationPattern(new long[] {0, 500});
-                    case NOTIF_VIBRATION_LONG:
-                        channel.setVibrationPattern(new long[] {0, 1000});
-                    case NOTIF_VIBRATION_SHORT:
-                        channel.setVibrationPattern(new long[] {0, 250});
-                    case PREF_OFF:
-                        channel.setVibrationPattern(null);
-                }
-            }
-
-            //Sound
-            Uri notificationUri;
-            if (preferenceManager.getSharedPreferences().contains(CHANNEL_CHATS_NOTIFICATION_URI)) {
-                notificationUri = Uri.parse(preferenceManager.getString(CHANNEL_CHATS_NOTIFICATION_URI));
-            } else notificationUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-            channel.setSound(
-                    notificationUri,
-                    new AudioAttributes.Builder()
-                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
-                            .build()
-            );
-
-            notificationManager.createNotificationChannel(channel);
-        }*/
     }
 }

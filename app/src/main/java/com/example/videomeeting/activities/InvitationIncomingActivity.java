@@ -63,6 +63,9 @@ public class InvitationIncomingActivity extends AppCompatActivity {
         setupRejectIV();
     }
 
+    /**
+     * Sets if the invitation is a call or a video call
+     */
     private void setCallType() {
         TextView incomingTV = findViewById(R.id.incomingTV);
         ImageView callTypeIV = findViewById(R.id.callTypeIV);
@@ -78,6 +81,9 @@ public class InvitationIncomingActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Loads the user data into the views of the layout
+     */
     private void bindUserData() {
         TextView defaultProfileTV = findViewById(R.id.defaultProfileTV);
         String imageURL = getIntent().getStringExtra(KEY_IMAGE_URL);
@@ -112,6 +118,9 @@ public class InvitationIncomingActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Sets the behaviour of the accept ImageView
+     */
     private void setupAcceptIV() {
         ImageView acceptIV = findViewById(R.id.acceptIV);
         acceptIV.setOnClickListener(v -> {
@@ -124,6 +133,9 @@ public class InvitationIncomingActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Sets the behaviour of the reject ImageView
+     */
     private void setupRejectIV() {
         ImageView rejectIV = findViewById(R.id.rejectIV);
         rejectIV.setOnClickListener(v -> {
@@ -136,18 +148,29 @@ public class InvitationIncomingActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Stops the ringtone from ringing
+     */
     private void stopRingtone() {
         if (ringtone != null) {
             ringtone.stop();
         }
     }
 
+    /**
+     * Stops the vibrator from vibrating
+     */
     private void stopVibrator() {
         if (vibrator != null) {
             vibrator.cancel();
         }
     }
 
+    /**
+     * We send the invitation once the type and the receiver token have been get
+     * @param type Type of invitation
+     * @param receiverToken Determines who will receive the call
+     */
     private void sendInvitationResponse(String type, String receiverToken) {
         try {
             JSONArray tokens = new JSONArray();
@@ -163,13 +186,15 @@ public class InvitationIncomingActivity extends AppCompatActivity {
             body.put(REMOTE_MSG_REGISTRATION_IDS, tokens);
 
             sendRemoteMessage(body.toString(), type);
-
         } catch (Exception e) {
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
             finish();
         }
     }
 
+    /**
+     * Stops the ringtone from ringing
+     */
     private void sendRemoteMessage(String remoteMessageBody, String type) {
         ApiClient.getClient().create(ApiService.class).sendRemoteMessage(
                 remoteMessageBody
@@ -204,14 +229,18 @@ public class InvitationIncomingActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Makes the phone ring
+     */
     private void ringPhone() {
         Uri ringtonePath;
         if (prefManager.getSharedPreferences().contains(CHANNEL_CALLS_RINGTONE_URI)) {
             ringtonePath = Uri.parse(new PreferenceManager(InvitationIncomingActivity.this).getString(CHANNEL_CALLS_RINGTONE_URI));
         } else {
             ringtonePath = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
-            if (ringtonePath == null)
+            if (ringtonePath == null) {
                 ringtonePath = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+            }
         }
 
         ringtone = RingtoneManager.getRingtone(getApplicationContext(), ringtonePath);
@@ -219,6 +248,9 @@ public class InvitationIncomingActivity extends AppCompatActivity {
         vibratePhone();
     }
 
+    /**
+     * Makes the phone vibrate
+     */
     private void vibratePhone() {
         int ringerMode = ((AudioManager) getSystemService(AUDIO_SERVICE)).getRingerMode();
         if(ringerMode == AudioManager.RINGER_MODE_SILENT) return;
@@ -247,6 +279,9 @@ public class InvitationIncomingActivity extends AppCompatActivity {
             vibrator.vibrate(new long[]{0, milis, milis}, 0);
     }
 
+    /**
+     * Setups a BroadcastReceiver in order to listen to the response of the user(s) that have received the call
+     */
     private final BroadcastReceiver invitationResponseReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -257,6 +292,9 @@ public class InvitationIncomingActivity extends AppCompatActivity {
         }
     };
 
+    /**
+     * If the call if rejected, the activity, the ringtone and the vibrator are finished
+     */
     private void cancelCallResult(String toastMessage) {
         Toast.makeText(InvitationIncomingActivity.this, toastMessage, Toast.LENGTH_SHORT).show();
         stopRingtone();

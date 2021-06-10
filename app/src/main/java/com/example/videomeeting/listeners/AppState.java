@@ -22,6 +22,9 @@ public class AppState extends Application implements LifecycleObserver {
         ProcessLifecycleOwner.get().getLifecycle().addObserver(this);
     }
 
+    /**
+     * Detects when the app is backgrounded
+     */
     @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
     private void onAppBackgrounded() {
         if (FIREBASE_USER != null) {
@@ -29,6 +32,9 @@ public class AppState extends Application implements LifecycleObserver {
         }
     }
 
+    /**
+     * Detects when the app is foregrounded
+     */
     @OnLifecycleEvent(Lifecycle.Event.ON_START)
     private void onAppForegrounded() {
         if (FIREBASE_USER != null) {
@@ -36,6 +42,10 @@ public class AppState extends Application implements LifecycleObserver {
         }
     }
 
+    /**
+     * Sets last seen of the user depending on the status of the application
+     * @param lastSeen timestamp of the last seen of the user
+     */
     private void setLastSeen(String lastSeen) {
         FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_USERS)
                 .child(FIREBASE_USER.getUid())

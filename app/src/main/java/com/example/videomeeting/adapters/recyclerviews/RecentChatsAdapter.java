@@ -63,10 +63,6 @@ public class RecentChatsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 view = LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.item_recent_chat_received, parent, false);
                 return new RecentChatsAdapter.MessageReceivedHolder(view);
-            /*case ITEM_MSG_RECEIVED_GROUP:
-                view = LayoutInflater.from(parent.getContext())
-                        .inflate(R.layout.item_msg_received_group, parent, false);
-                return new MessageReceivedGroupHolder(view);*/
         }
         return null;
     }
@@ -87,9 +83,6 @@ public class RecentChatsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                         remoteUserList.get(position)
                 );
                 break;
-            /*case ITEM_MSG_RECEIVED_GROUP:
-                ((MessageReceivedGroupHolder) holder).bind(chat);
-                break;*/
         }
     }
 
@@ -176,38 +169,6 @@ public class RecentChatsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 i.putExtra(Constants.INTENT_USER, remoteUser);
                 context.startActivity(i);
             });
-
-            /* Possible feature for text groups
-            itemCallLY.setOnLongClickListener(v -> {
-                if (selectedUserIV.getVisibility() != View.VISIBLE) {
-                    selectedUsers.add(user);
-                    selectedUserIV.setVisibility(View.VISIBLE);
-                    callIV.setVisibility(View.GONE);
-                    videocallIV.setVisibility(View.GONE);
-                    usersListener.onMultipleUsersAction(true);
-                }
-                return true;
-            });
-
-            itemCallLY.setOnClickListener(v -> {
-                if (selectedUserIV.getVisibility() == View.VISIBLE) {
-                    selectedUsers.remove(user);
-                    selectedUserIV.setVisibility(View.GONE);
-                    callIV.setVisibility(View.VISIBLE);
-                    videocallIV.setVisibility(View.VISIBLE);
-
-                    if (selectedUsers.size() == 0)
-                        usersListener.onMultipleUsersAction(false);
-                } else {
-                    if (selectedUsers.size() > 0) {
-                        selectedUsers.remove(user);
-                        selectedUserIV.setVisibility(View.VISIBLE);
-                        callIV.setVisibility(View.GONE);
-                        videocallIV.setVisibility(View.GONE);
-                    }
-                }
-            });
-             */
         }
     }
 

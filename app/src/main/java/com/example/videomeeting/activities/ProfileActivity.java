@@ -75,6 +75,9 @@ public class ProfileActivity extends AppCompatActivity {
         setClickListeners();
     }
 
+    /**
+     * Setups username into the view and checks the EditText value if the user wants to change it
+     */
     private void setupUserName() {
         EditText usernameET = findViewById(R.id.usernameET);
         username = CURRENT_USER.getUserName();
@@ -94,6 +97,9 @@ public class ProfileActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Checks if the username written in the username EditText is correct or not
+     */
     private void checkUserName(EditText usernameET) {
         if (username.isEmpty()) {
             usernameET.setError(getString(R.string.enter_user_name));
@@ -128,6 +134,9 @@ public class ProfileActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Setups the user about and the character counter
+     */
     private void setupAbout() {
         TextView countdownTV = findViewById(R.id.countdownTV);
         EditText aboutET = findViewById(R.id.aboutET);
@@ -166,12 +175,18 @@ public class ProfileActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Setups the phone number
+     */
     private void setupPhone() {
         TextView phoneTV = findViewById(R.id.phoneTV);
         phoneTV.setText(FIREBASE_USER.getPhoneNumber());
         findViewById(R.id.phoneLY).setOnClickListener(v -> Toast.makeText(this, getString(R.string.cannot_edit_the_number), Toast.LENGTH_SHORT).show());
     }
 
+    /**
+     * Setups the click listeners of the buttons
+     */
     private void setClickListeners() {
         findViewById(R.id.updateIV).setOnClickListener(view -> pickImage());
         findViewById(R.id.deleteIV).setOnClickListener(view -> deleteProfilePic());
@@ -208,6 +223,9 @@ public class ProfileActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Setups user profile picture into the views
+     */
     private void setupProfilePic() {
         profileIV = findViewById(R.id.profileIV);
         defaultProfileIV = findViewById(R.id.defaultProfileIV);
@@ -222,6 +240,9 @@ public class ProfileActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Deletes the profile picture from the FirebaseStorage and the imageURL of the user in Firebase
+     */
     private void deleteProfilePic() {
         AlertDialog.Builder alertBuilder = new AlertDialog.Builder(ProfileActivity.this);
         alertBuilder.setTitle(R.string.sure_)
@@ -248,6 +269,9 @@ public class ProfileActivity extends AppCompatActivity {
                 .create().show();
     }
 
+    /**
+     * Loads the configuration of the last seen of the user
+     */
     private void loadLastSeen() {
         lastSeenTV = findViewById(R.id.lastSeenTV);
         lastSeenStatus = CURRENT_USER.getLastSeenStatus();
@@ -259,6 +283,9 @@ public class ProfileActivity extends AppCompatActivity {
             lastSeenTV.setText(R.string.nobody);
     }
 
+    /**
+     * Setups the options of the last seen privacy
+     */
     private void setLastSeen(TextView lastSeenTV) {
         String[] items = {
                 getString(R.string.everyone),
@@ -267,10 +294,11 @@ public class ProfileActivity extends AppCompatActivity {
         };
 
         int checkedItem = 0; //Everyone by default
-        if (lastSeenStatus.equals(KEY_LAST_SEEN_CONTACTS))
+        if (lastSeenStatus.equals(KEY_LAST_SEEN_CONTACTS)) {
             checkedItem = 1;
-        else if (lastSeenStatus.equals(KEY_LAST_SEEN_NONE))
+        } else if (lastSeenStatus.equals(KEY_LAST_SEEN_NONE)) {
             checkedItem = 2;
+        }
 
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(ProfileActivity.this);
         alertDialog.setTitle(R.string.last_seen)
@@ -292,16 +320,20 @@ public class ProfileActivity extends AppCompatActivity {
                 }).create().show();
     }
 
+    /**
+     * Stores the changes made by the user into Firebase
+     */
     private void saveChanges() {
         if (isUserNameValid) {
             DatabaseReference userRef = FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_USERS)
                     .child(FIREBASE_USER.getUid());
 
             if (!CURRENT_USER.getImageURL().equals(imageURL)) {
-                if (!CURRENT_USER.getImageURL().equals(KEY_IMAGE_URL_DEFAULT))
+                if (!CURRENT_USER.getImageURL().equals(KEY_IMAGE_URL_DEFAULT)) {
                     FirebaseStorage.getInstance()
                             .getReferenceFromUrl(CURRENT_USER.getImageURL())
                             .delete();
+                }
 
                 userRef.child(KEY_IMAGE_URL)
                         .setValue(imageURL);
@@ -313,14 +345,15 @@ public class ProfileActivity extends AppCompatActivity {
                 userRef.child(KEY_USERNAME).setValue(username);
             }
 
-            if (CURRENT_USER.getAbout() == null ||
-                    !CURRENT_USER.getAbout().equals(about))
+            if (CURRENT_USER.getAbout() == null || !CURRENT_USER.getAbout().equals(about)) {
                 userRef.child(KEY_ABOUT)
                         .setValue(about);
+            }
 
-            if (!CURRENT_USER.getLastSeenStatus().equals(lastSeenStatus))
+            if (!CURRENT_USER.getLastSeenStatus().equals(lastSeenStatus)) {
                 userRef.child(KEY_IS_LAST_SEEN_STATUS)
                         .setValue(lastSeenStatus);
+            }
 
             if (haveChangesBeenMade()) {
                 userRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -339,20 +372,29 @@ public class ProfileActivity extends AppCompatActivity {
                     }
                 });
             }
-        } else
+        } else {
             Toast.makeText(this, getString(R.string.user_name_invalid), Toast.LENGTH_SHORT).show();
+        }
     }
 
+    /**
+     * Checks if changes have been made
+     * @return True if changes have been made
+     */
     private boolean haveChangesBeenMade() {
         if (isUserNameValid) {
             return !CURRENT_USER.getImageURL().equals(imageURL) ||
                     !CURRENT_USER.getUserName().equals(username) ||
                     !CURRENT_USER.getLastSeenStatus().equals(lastSeenStatus) ||
                     (CURRENT_USER.getAbout() != null && !CURRENT_USER.getAbout().equals(about));
-        } else
+        } else {
             return false;
+        }
     }
 
+    /**
+     * Lets the user pick a profile picture from the gallery
+     */
     private void pickImage() {
         Intent i = new Intent();
         i.setType("image/*");
@@ -360,12 +402,20 @@ public class ProfileActivity extends AppCompatActivity {
         startActivityForResult(i, ASK_FOR_IMAGE);
     }
 
+    /**
+     * Gets file extension of the picture that the user picks
+     * @param uri The uri of the file
+     * @return The extension of the uri
+     */
     private String getFileExtension(Uri uri) {
         ContentResolver contentResolver = ProfileActivity.this.getContentResolver();
         MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
         return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri));
     }
 
+    /**
+     * Uploads the image that the user picks to Firebase
+     */
     private void uploadImage() {
         final ProgressDialog progressDialog = new ProgressDialog(ProfileActivity.this);
         progressDialog.setMessage(getString(R.string.uploading));

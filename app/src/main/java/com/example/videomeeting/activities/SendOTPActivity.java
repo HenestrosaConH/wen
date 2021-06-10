@@ -42,6 +42,9 @@ public class SendOTPActivity extends AppCompatActivity {
         verifyPhoneValidity();
     }
 
+    /**
+     * Checks whether the user is already signed or not
+     */
     private void isSignedIn() {
         PreferenceManager prefManager = new PreferenceManager(getApplicationContext());
         if (prefManager.getBoolean(Constants.PREF_IS_SIGNED_IN)) {
@@ -55,11 +58,17 @@ public class SendOTPActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Setups phone number EditText
+     */
     private void setupPhoneNumberET() {
         phoneNumberET = findViewById(R.id.phoneNumberET);
         phoneNumberET.addTextChangedListener(new PhoneNumberFormattingTextWatcher("ES"));
     }
 
+    /**
+     * Verifies the validity of the phone number input by the user
+     */
     private void verifyPhoneValidity() {
         sendCodeBT = findViewById(R.id.sendCodeBT);
         sendCodeBT.setOnClickListener(v -> {
@@ -76,6 +85,9 @@ public class SendOTPActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Shows the not valid dialog in case that the number input is not correct
+     */
     private void showNotValidDlg() {
         AlertDialog.Builder builder = new AlertDialog.Builder(SendOTPActivity.this);
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
@@ -87,6 +99,9 @@ public class SendOTPActivity extends AppCompatActivity {
         builder.create().show();
     }
 
+    /**
+     * Shows a dialog in order to make sure that the user input the desired number
+     */
     private void showNumberInputDlg() {
         AlertDialog.Builder builder = new AlertDialog.Builder(SendOTPActivity.this);
         builder.setCancelable(false);
@@ -101,6 +116,9 @@ public class SendOTPActivity extends AppCompatActivity {
         builder.create().show();
     }
 
+    /**
+     * If the number is correct, this method sends the verification SMS to the phone input by the user
+     */
     private void sendCode() {
         changeViewsVisibility(View.VISIBLE, View.INVISIBLE);
 
@@ -135,11 +153,22 @@ public class SendOTPActivity extends AppCompatActivity {
         );
     }
 
+    /**
+     * Changes the visibility of the ProgressBar and the Button
+     * @param pbVis Status of the visibility of the ProgressBar
+     * @param btVis Status of the visibility of the Button
+     */
     private void changeViewsVisibility(int pbVis, int btVis) {
         findViewById(R.id.sendCodePB).setVisibility(pbVis);
         sendCodeBT.setVisibility(btVis);
     }
 
+    /**
+     * Checks of the phone number is valid ot not
+     * @param phoneNumber Phone number input by the user
+     * @param countryCode Country code of the phone number
+     * @return true if the phone number is valid
+     */
     public boolean isPhoneNumberValid(String phoneNumber, String countryCode) {
         PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
         try {

@@ -121,6 +121,9 @@ public class ChatActivity extends AppCompatActivity {
         checkUserStatus();
     }
 
+    /**
+     * Setups the last seen of the user in the views
+     * */
     private void setupLastSeen() {
         lastSeenTV = findViewById(R.id.lastSeenTV);
         if (remoteUser.getLastSeenStatus().equals(KEY_LAST_SEEN_ALL)) {
@@ -136,6 +139,9 @@ public class ChatActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Setups the toolbar of the activity
+     * */
     private void setupToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);
         toolbar.setTitle("");
@@ -148,6 +154,9 @@ public class ChatActivity extends AppCompatActivity {
         imageLY.setOnClickListener(v -> onBackPressed());
     }
 
+    /**
+     * Setups the bottom layout, which contains the message TextView, the emojis ImageView and the send ImageView
+     * */
     private void setupBottomLayout() {
         ImageView emojiIV = findViewById(R.id.emojiIV);
         View layout = findViewById(R.id.layout);
@@ -170,6 +179,9 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Setups the RecyclerView
+     * */
     private void setupRV() {
         messageList = new ArrayList<>();
         messagesRV = findViewById(R.id.messagesRV);
@@ -199,6 +211,10 @@ public class ChatActivity extends AppCompatActivity {
         return true;
     }
 
+    /**
+     * Checks and sets the contact Item from the ActionBar depending if the user is contact or not
+     * @param isRemoveEnabled If true, when we click on the MenuItem, the user will be removed
+     * */
     private void setContactIT(boolean isRemoveEnabled) {
         if (isRemoveEnabled) {
             contactIT.setTitle(R.string.delete_contact);
@@ -232,6 +248,9 @@ public class ChatActivity extends AppCompatActivity {
         return false;
     }
 
+    /**
+     * Setups the profile picture of the user.
+     * */
     private void setupProfilePic() {
         ImageView profileIV = findViewById(R.id.profileIV);
         TextView defaultProfileTV = findViewById(R.id.defaultProfileTV);
@@ -247,12 +266,19 @@ public class ChatActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * SimpleDateFormat that shows the date without the years
+     * */
     private DateFormat getShortDateInstanceWithoutYears() {
         SimpleDateFormat sdf = (SimpleDateFormat) DateFormat.getDateInstance(DateFormat.SHORT, Locale.getDefault());
         sdf.toLocalizedPattern().replaceAll("y", "");
         return sdf;
     }
 
+    /**
+     * Gets the messages exchanged with the user from Firebase
+     * @param chatRoomKey The key of the node which contains all the messages between us and the user
+     * */
     private void getMessages(String chatRoomKey) {
         if (shouldCheckKey) {
             messagesRef.child(chatRoomKey).addValueEventListener(new ValueEventListener() {
@@ -282,9 +308,6 @@ public class ChatActivity extends AppCompatActivity {
                         message.setTimestamp(Long.parseLong(snapshot.getKey()));
                         if (!message.getSenderID().equals(FIREBASE_USER.getUid()) && !message.getSeen()) {
                             message.setSeen(true);
-                            Log.e("getSenderID", message.getSenderID()+"");
-                            Log.e("messageText", message.getMessage()+"");
-                            Log.e("seen", message.getSeen()+"");
                             recentChatsRef.child(chatRoomKey).child(KEY_SEEN).setValue(true);
                             messagesRef.child(chatRoomKey).child(snapshot.getKey()).child(KEY_SEEN).setValue(true);
                         }
@@ -318,6 +341,9 @@ public class ChatActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * For every iteration in getMessages(), we load the message in the adapter of the RecyclerView
+     * */
     private void checkMessageList() {
         messagesAdapter = new MessagesAdapter(messageList);
         messagesRV.setAdapter(messagesAdapter);
@@ -325,45 +351,10 @@ public class ChatActivity extends AppCompatActivity {
         noMessagesCV.setVisibility(View.GONE);
     }
 
-    /*
-    private void getMessages(String chatRoomID) {
-        messagesRef.child(chatRoomID)
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        if (snapshot.getValue() == null) {
-                            messagesRV.setVisibility(View.GONE);
-                            noMessagesCV.setVisibility(View.VISIBLE);
-                            getMessages(remoteUser.getId() + "-" + FIREBASE_USER.getUid());
-                        } else {
-                            messageList.clear();
-                            chatRoomKey = snapshot.getKey();
-                            checkMessageStatus(chatRoomKey);
-                            Message message;
-                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                                if (dataSnapshot.getValue() != null) {
-                                    message = dataSnapshot.getValue(Message.class);
-                                    message.setTimestamp(Long.parseLong(dataSnapshot.getKey()));
-                                    messageList.add(message);
-                                }
-                            }
-                            if (messageList.size() > 0) {
-                                messagesAdapter = new MessagesAdapter(messageList);
-                                messagesRV.setAdapter(messagesAdapter);
-                                messagesRV.setVisibility(View.VISIBLE);
-                                noMessagesCV.setVisibility(View.GONE);
-                            } else {
-                                messagesRV.setVisibility(View.GONE);
-                                noMessagesCV.setVisibility(View.VISIBLE);
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) { }
-                });
-    }*/
-
+    /**
+     * Every time we click on the send ImageView, this method will be called. We create the object and store it on the DB
+     * @param messageText The text that will be send to the user
+     * */
     private void sendMessage(String messageText) {
         Message message = new Message(
             FIREBASE_USER.getUid(),
@@ -384,9 +375,12 @@ public class ChatActivity extends AppCompatActivity {
             false
         );
         recentChatsRef.child(chatRoomKey).setValue(recentChat);
-        setNotificationData(message);
+        setNotificationData(messageText);
     }
 
+    /**
+     * If the user is not in the contacts list and we add him, this method will store him on out contacts list in Firebase
+     * */
     private void addUserToContacts() {
         HashMap<String, Boolean> contactedUserMap = new HashMap<>();
         if (CURRENT_USER.getContacts() != null) {
@@ -401,6 +395,9 @@ public class ChatActivity extends AppCompatActivity {
         contactsRef.setValue(contactedUserMap);
     }
 
+    /**
+     * If the user is in the contacts list and we remove him, this method will remove him off our contacts list in Firebase
+     * */
     private void removeUserFromContacts() {
         HashMap<String, Boolean> contactedUserMap = CURRENT_USER.getContacts();
         contactedUserMap.remove(remoteUser.getId());
@@ -408,13 +405,16 @@ public class ChatActivity extends AppCompatActivity {
         contactsRef.setValue(contactedUserMap);
     }
 
-    private void setNotificationData(Message message) {
-        //Notification notification = new Notification(remoteUser.getUserName(), message, remoteUser.fcmToken);
+    /**
+     * When we send a message, we set the notification data that will be send to the user
+     * @param messageText We get the message text that will be visible on the notifications
+     * */
+    private void setNotificationData(String messageText) {
         JSONObject body = new JSONObject();
         try {
             JSONObject data = new JSONObject();
             data.put(NOTIFICATION_TITLE, CURRENT_USER.getUserName());
-            data.put(NOTIFICATION_BODY, message.getMessage());
+            data.put(NOTIFICATION_BODY, messageText);
             data.put(KEY_IMAGE_URL, CURRENT_USER.getImageURL());
             data.put(KEY_USER_ID, FIREBASE_USER.getUid());
 
@@ -430,6 +430,10 @@ public class ChatActivity extends AppCompatActivity {
         sendNotification(body);
     }
 
+    /**
+     * Once we set the notification data, we send the notification to him
+     * @param body The JSON body which contains the notification data
+     */
     private void sendNotification(JSONObject body) {
         ApiClient.getClient().create(ApiService.class).sendNotification(
                 body.toString()
@@ -441,44 +445,9 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 
-    /*
-    private void checkMessageStatus(String chatRoomKey) {
-        statusMessageListener = messagesRef.child(chatRoomKey).addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-                Message message = snapshot.getValue(Message.class);
-                message.setTimestamp(Long.parseLong(snapshot.getKey()));
-                if (!message.getSenderID().equals(FIREBASE_USER.getUid()) && !message.isSeen()) {
-                    Log.e("getSenderID", message.getSenderID()+"");
-                    Log.e("getTimestamp", message.getTimestamp()+"");
-                    Log.e("FIREBASE_USER", FIREBASE_USER.getUid()+"");
-                    HashMap<String, Object> hashMap = new HashMap<>();
-                    hashMap.put(KEY_SEEN, true);
-                    //snapshot.getRef().updateChildren(hashMap);
-                    //recentChatsRef.child(chatRoomKey).updateChildren(hashMap);
-                }
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) { }
-        });
-    }*/
-
+    /**
+     * We put a ValueEventListener in order to show the current status of the user
+     */
     private void checkUserStatus() {
         statusUserListener = FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_USERS)
                 .child(remoteUser.getId())
@@ -502,6 +471,10 @@ public class ChatActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * We format the status of the user depending on how much time has passed since the last seen
+     * @param lastSeenString Timestamp string that we format
+     */
     private void formatLastSeen(String lastSeenString) {
         if (lastSeenString.equals(KEY_LAST_SEEN_ONLINE)) {
             lastSeenTV.setText(KEY_LAST_SEEN_ONLINE);
@@ -587,6 +560,9 @@ public class ChatActivity extends AppCompatActivity {
         processExtraData();
     }
 
+    /**
+     * When we click in the notification, we get the intent from it in order to open the ChatActivity with that user
+     */
     private void processExtraData(){
         remoteUser = (User) getIntent().getSerializableExtra(INTENT_USER);
     }

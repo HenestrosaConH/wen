@@ -7,6 +7,10 @@ public class ApiClient {
 
     private static Retrofit retrofit = null;
 
+    /**
+     * Gets the Retrofit client. In this case, we want to establish the connection with the FCM API
+     * @return Retrofit instance
+     */
     public static Retrofit getClient() {
         if (retrofit == null) {
             retrofit = new Retrofit.Builder()

@@ -1,7 +1,6 @@
 package com.example.videomeeting.fragments;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,27 +41,35 @@ public class SearchUserFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_search_user, container, false);
         notFoundTV = view.findViewById(R.id.notFoundTV);
         searchTipCV = view.findViewById(R.id.searchTipCV);
-        refreshRV(view);
+        setupRV(view);
         return view;
     }
 
-    private void refreshRV(View view) {
+    /**
+     * Setups the RecyclerView
+     * @param view fragment's inflater
+     */
+    private void setupRV(View view) {
         userMap = new HashMap<>();
         searchUserRV = view.findViewById(R.id.searchUserRV);
         searchUserRV.setHasFixedSize(true);
         searchUserRV.setLayoutManager(new LinearLayoutManager(getContext()));
     }
 
+    /**
+     * Gets the query and searches on the users node to retrieve the results
+     * @param query Name of the user input by the user
+     */
     public void searchUser(String query) {
         userMap.clear();
         boolean isUserNameValid = true;
 
         String finalQuery = query.trim();
         if (finalQuery.isEmpty()) {
-            setViewsVisibility(View.GONE, View.VISIBLE, View.GONE);
+            changeViewsVisibility(View.GONE, View.VISIBLE, View.GONE);
             isUserNameValid = false;
         } else if (finalQuery.length() < 4 || !finalQuery.matches("^[a-zA-Z0-9]+$")) {
-            setViewsVisibility(View.GONE, View.VISIBLE, View.GONE);
+            changeViewsVisibility(View.GONE, View.VISIBLE, View.GONE);
             isUserNameValid = false;
         }
 
@@ -90,21 +97,34 @@ public class SearchUserFragment extends Fragment {
         }
     }
 
-    private void setViewsVisibility(int searchVis, int searchTipVis, int notFoundVis) {
+    /**
+     * Changes the visibility of some views
+     * @param searchVis changes visibility of the RecyclerView
+     * @param searchTipVis changes visibility of the tip CardView
+     * @param notFoundVis changes visibility of the not found message TextView
+     */
+    private void changeViewsVisibility(int searchVis, int searchTipVis, int notFoundVis) {
         searchUserRV.setVisibility(searchVis);
         searchTipCV.setVisibility(searchTipVis);
         notFoundTV.setVisibility(notFoundVis);
     }
 
+    /**
+     * Checks the userMap and refreshes the RecyclerView
+     */
     private void checkList() {
         if (userMap.size() > 0) {
             refreshRV(userMap);
-            setViewsVisibility(View.VISIBLE, View.GONE, View.GONE);
+            changeViewsVisibility(View.VISIBLE, View.GONE, View.GONE);
         } else {
-            setViewsVisibility(View.GONE, View.GONE, View.VISIBLE);
+            changeViewsVisibility(View.GONE, View.GONE, View.VISIBLE);
         }
     }
 
+    /**
+     * Refreshes the RecyclerView if new values have been found
+     * @param userMap Contains the results from the query
+     */
     private void refreshRV(@NotNull Map<String, User> userMap) {
         SearchUserAdapter searchUserAdapter = new SearchUserAdapter(
                 getContext(),

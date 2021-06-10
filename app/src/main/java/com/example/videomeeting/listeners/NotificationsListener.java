@@ -67,8 +67,6 @@ import static com.example.videomeeting.utils.Constants.NOTIF_VIBRATION_SHORT;
 
 public class NotificationsListener extends FirebaseMessagingService {
 
-    //TODO clean code
-
     private User remoteUser;
     private boolean isFound = false;
     private FutureTarget<Bitmap> futureTarget;
@@ -85,6 +83,7 @@ public class NotificationsListener extends FirebaseMessagingService {
         PreferenceManager prefManager = new PreferenceManager(getApplicationContext());
         String type = remoteMessage.getData().get(INTENT_CALL_TYPE);
 
+        //FCM notification received for call
         if (type != null) {
             if (type.equals(REMOTE_MSG_INVITATION)) {
                 Intent intent = new Intent(getApplicationContext(), InvitationIncomingActivity.class);
@@ -99,6 +98,7 @@ public class NotificationsListener extends FirebaseMessagingService {
                 LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
             }
         } else if (!prefManager.getSharedPreferences().contains(NOTIF_IS_GLOBAL) || prefManager.getBoolean(NOTIF_IS_GLOBAL)) {
+            //FCM message notification received
             Intent activityIntent = new Intent(this, ChatActivity.class);
             searchUser(remoteMessage);
 
@@ -110,31 +110,6 @@ public class NotificationsListener extends FirebaseMessagingService {
                     activityIntent,
                     FLAG_UPDATE_CURRENT
             );
-
-        /*Reply function (need some more code from https://www.youtube.com/watch?v=DsFYPTnCbs8&t=9s&ab_channel=CodinginFlow)
-        RemoteInput remoteInput = new RemoteInput.Builder(Constants.RESULT_KEY)
-                .setLabel(getResources().getString(R.string.reply))
-                .build();
-
-        PendingIntent replyPendingIntent =
-                PendingIntent.getBroadcast(
-                        getApplicationContext(),
-                        0,//should be the user id tho
-                        new Intent(
-                                getApplicationContext(),
-                                ChatActivity.class
-                        ),
-                        PendingIntent.FLAG_UPDATE_CURRENT
-                );
-
-        NotificationCompat.Action replyAction =
-                new NotificationCompat.Action.Builder(
-                        R.drawable.ic_reply,
-                        getResources().getString(R.string.reply),
-                        replyPendingIntent
-                ).addRemoteInput(remoteInput)
-                .build();
-        */
             Bitmap userPic = getUserPic(remoteMessage);
 
             NotificationCompat.Builder summaryBuilder = new NotificationCompat.Builder(this, String.valueOf(CHANNEL_CHATS_ID))
@@ -152,23 +127,19 @@ public class NotificationsListener extends FirebaseMessagingService {
                     .setContentText(remoteMessage.getData().get(NOTIFICATION_BODY))
                     .setSmallIcon(R.drawable.ic_launcher_icon_text)
                     .setLargeIcon(userPic)
-                    //.setOnlyAlertOnce(true)
-                    //.setAutoCancel(true)
                     .setGroup(remoteUser.getId())
                     .setColor(ContextCompat.getColor(this, R.color.colorAccent))
-                    //.setCategory(NotificationCompat.CATEGORY_MESSAGE)
                     .setContentIntent(contentIntent);
-                    //.addAction(replyAction)
 
             if (futureTarget != null) {
                 Glide.with(this).clear(futureTarget);
             }
 
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) { //&& CHANNEL_CHATS_ID == 1) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 notificationBuilder.setDefaults(NotificationCompat.DEFAULT_ALL);
                 createDefaultNotificationChannel(notificationManager);
-            } else {//if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            } else {
                 setNotifLights(prefManager, notificationBuilder);
                 setNotifVibration(prefManager, notificationBuilder);
                 setNotifSound(prefManager, notificationBuilder);
@@ -182,6 +153,11 @@ public class NotificationsListener extends FirebaseMessagingService {
         }
     }
 
+    /**
+     * Puts extras to the intent from the FCM call notification
+     * @param intent Intent that will be send to the current user
+     * @param remoteMessage Data from the notification that contains the call information
+     */
     private void putExtras(Intent intent, RemoteMessage remoteMessage) {
         intent.putExtra(
                 REMOTE_MSG_CALL_TYPE,
@@ -210,6 +186,10 @@ public class NotificationsListener extends FirebaseMessagingService {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
     }
 
+    /**
+     * Searches the user in order to get his ID. Useful for messages notifications
+     * @param remoteMessage Contains information from the push notification
+     */
     private void searchUser(RemoteMessage remoteMessage) {
         while(!isFound) {
             FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_USERS)
@@ -228,6 +208,11 @@ public class NotificationsListener extends FirebaseMessagingService {
         }
     }
 
+    /**
+     * Gets the user picture to show on the notification of the messages
+     * @param remoteMessage Contains information from the push notification
+     * @return Bitmap with the picture
+     */
     private Bitmap getUserPic(RemoteMessage remoteMessage) {
         Bitmap userPic = null;
         if (!remoteMessage.getData().get(KEY_IMAGE_URL).equals(KEY_IMAGE_URL_DEFAULT)) {
@@ -245,12 +230,17 @@ public class NotificationsListener extends FirebaseMessagingService {
         return userPic;
     }
 
+    /**
+     * Converts the Drawable received on getUserPic() to a Bitmap
+     * @param drawable Drawable from getUserPic()
+     * @return Bitmap with the correct format
+     */
     private Bitmap drawableToBitmap(Drawable drawable) {
         Bitmap bitmap;
 
         if (drawable instanceof BitmapDrawable) {
             BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
-            if(bitmapDrawable.getBitmap() != null) {
+            if (bitmapDrawable.getBitmap() != null) {
                 return bitmapDrawable.getBitmap();
             }
         }
@@ -267,6 +257,11 @@ public class NotificationsListener extends FirebaseMessagingService {
         return bitmap;
     }
 
+    /**
+     * Sets the notification lights based on the user's preferences
+     * @param prefManager App's preferences
+     * @param builder Notification builder
+     */
     private void setNotifLights(PreferenceManager prefManager, NotificationCompat.Builder builder) {
         int inMs = 500, onMs = 500;
         if (prefManager.getSharedPreferences().contains(CHANNEL_CHATS_LIGHT)) {
@@ -301,6 +296,11 @@ public class NotificationsListener extends FirebaseMessagingService {
         }
     }
 
+    /**
+     * Sets notifications vibration preferences
+     * @param prefManager App's preferences
+     * @param builder Notification builder
+     */
     private void setNotifVibration(PreferenceManager prefManager, NotificationCompat.Builder builder) {
         if (prefManager.getSharedPreferences().contains(CHANNEL_CHATS_VIBRATION)) {
             switch (prefManager.getString(CHANNEL_CHATS_VIBRATION)) {
@@ -318,6 +318,11 @@ public class NotificationsListener extends FirebaseMessagingService {
         }
     }
 
+    /**
+     * Sets notification sound preferences
+     * @param prefManager App's preferences
+     * @param builder Notification builder
+     */
     private void setNotifSound(PreferenceManager prefManager, NotificationCompat.Builder builder) {
         Uri notificationUri;
         if (prefManager.getSharedPreferences().contains(CHANNEL_CHATS_NOTIFICATION_URI)) {
@@ -329,6 +334,11 @@ public class NotificationsListener extends FirebaseMessagingService {
         );
     }
 
+    /**
+     * Sets notification popup preferences
+     * @param prefManager App's preferences
+     * @param builder Notification builder
+     */
     private void setNotifPopup(PreferenceManager prefManager, NotificationCompat.Builder builder) {
         int importance = NotificationCompat.PRIORITY_HIGH;
         if (prefManager.getSharedPreferences().contains(CHANNEL_CHATS_IMPORTANCE)
@@ -338,6 +348,9 @@ public class NotificationsListener extends FirebaseMessagingService {
         builder.setPriority(importance);
     }
 
+    /**
+     * Creates the notification channel for private chats (only in APIs above or equals to Android 8.0)
+     */
     @RequiresApi(Build.VERSION_CODES.O)
     private void createDefaultNotificationChannel(NotificationManagerCompat notificationManager) {
         NotificationChannel channel = new NotificationChannel(

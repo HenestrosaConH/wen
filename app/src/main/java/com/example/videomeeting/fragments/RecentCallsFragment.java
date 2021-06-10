@@ -67,6 +67,10 @@ public class RecentCallsFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Setups the RecyclerView
+     * @param view fragment's inflater
+     */
     private void setupRV(View view) {
         userList = new ArrayList<>();
         callMap = new LinkedHashMap<>();
@@ -79,6 +83,10 @@ public class RecentCallsFragment extends Fragment {
         recentCallsRV.setAdapter(recentCallsAdapter);
     }
 
+    /**
+     * Setups the FloatingButton which opens the contacts list
+     * @param view fragment's inflater
+     */
     private void setupFab(View view) {
         view.findViewById(R.id.callsListFB).setOnClickListener(v -> {
             Intent intent = new Intent(getContext(), UsersListCallsActivity.class);
@@ -86,6 +94,9 @@ public class RecentCallsFragment extends Fragment {
         });
     }
 
+    /**
+     * Gets the recent calls from the user
+     */
     private void getRecentCalls() {
         changeViewsVisibility(View.GONE, View.GONE, View.VISIBLE);
         incomingCallsListener = callsRef.addChildEventListener(new ChildEventListener() {
@@ -119,6 +130,10 @@ public class RecentCallsFragment extends Fragment {
                 });
     }
 
+    /**
+     * Gets the user from the call in order to bind his data into the views
+     * @param call contains the ID of the users involved
+     */
     private void getUserFromCall(Call call) {
         if (call.getCallerID().equals(FIREBASE_USER.getUid()) && !call.getReceiverID().contains("\n")) {
             fillLists(call.getReceiverID(), call);
@@ -135,6 +150,11 @@ public class RecentCallsFragment extends Fragment {
         }
     }
 
+    /**
+     * Fills the users and calls lists
+     * @param userId The user get from the getUserFromCall()
+     * @param call Call that matches the user
+     */
     private void fillLists(String userId, Call call) {
         FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_USERS)
                 .child(userId)
@@ -158,6 +178,9 @@ public class RecentCallsFragment extends Fragment {
                 });
     }
 
+    /**
+     * Checks the userList and depending on his size, the RecyclerView will be visible or not
+     */
     private void checkUserList() {
         if (userList.size() > 0) {
             recentCallsAdapter = new RecentCallsAdapter(getContext(), userList, callMap);
@@ -168,24 +191,15 @@ public class RecentCallsFragment extends Fragment {
         }
     }
 
+    /**
+     * Changes the visibility of some views
+     * @param recentCallsVis changes visibility of the RecyclerView
+     * @param errorMessageVis changes visibility of the error message TextView
+     * @param welcomingVis changes visibility of the welcoming message CardView
+     */
     private void changeViewsVisibility(int recentCallsVis, int errorMessageVis, int welcomingVis) {
         recentCallsRV.setVisibility(recentCallsVis);
         errorMessageTV.setVisibility(errorMessageVis);
         welcomingCV.setVisibility(welcomingVis);
     }
-
-    /*
-    @Override
-    public void onStart() {
-        super.onStart();
-        callsRef.addChildEventListener(incomingCallsListener);
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        if (incomingCallsListener != null) {
-            callsRef.removeEventListener(incomingCallsListener);
-        }
-    }*/
 }

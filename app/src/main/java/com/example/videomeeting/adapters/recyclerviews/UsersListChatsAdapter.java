@@ -137,38 +137,6 @@ public class UsersListChatsAdapter extends RecyclerView.Adapter<UsersListChatsAd
                 i.putExtra(Constants.INTENT_USER, user);
                 context.startActivity(i);
             });
-
-            /* Possible feature for group texts
-            itemCallLY.setOnLongClickListener(v -> {
-                if (selectedUserIV.getVisibility() != View.VISIBLE) {
-                    selectedUsers.add(user);
-                    selectedUserIV.setVisibility(View.VISIBLE);
-                    callIV.setVisibility(View.GONE);
-                    videocallIV.setVisibility(View.GONE);
-                    usersListener.onMultipleUsersAction(true);
-                }
-                return true;
-            });
-
-            itemCallLY.setOnClickListener(v -> {
-                if (selectedUserIV.getVisibility() == View.VISIBLE) {
-                    selectedUsers.remove(user);
-                    selectedUserIV.setVisibility(View.GONE);
-                    callIV.setVisibility(View.VISIBLE);
-                    videocallIV.setVisibility(View.VISIBLE);
-
-                    if (selectedUsers.size() == 0)
-                        usersListener.onMultipleUsersAction(false);
-                } else {
-                    if (selectedUsers.size() > 0) {
-                        selectedUsers.remove(user);
-                        selectedUserIV.setVisibility(View.VISIBLE);
-                        callIV.setVisibility(View.GONE);
-                        videocallIV.setVisibility(View.GONE);
-                    }
-                }
-            });
-             */
         }
     }
 }

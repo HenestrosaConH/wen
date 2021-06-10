@@ -16,7 +16,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.videomeeting.R;
-import com.example.videomeeting.utils.Constants;
 import com.example.videomeeting.utils.PreferenceManager;
 import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.FirebaseAuth;
@@ -40,8 +39,8 @@ public class VerifyOTPActivity extends AppCompatActivity {
         setContentView(R.layout.activity_verify_o_t_p);
 
         setupPhoneNumber();
-        getOTPinputsViews();
-        setupOTPinputs();
+        getOTPInputsViews();
+        setupOTPInputs();
 
         verificationId = getIntent().getStringExtra(INTENT_VERIFICATION_ID);
         verifyCode();
@@ -49,12 +48,19 @@ public class VerifyOTPActivity extends AppCompatActivity {
         findViewById(R.id.resendCodeBT).setOnClickListener(v -> resendCode());
     }
 
+    /**
+     * Setups phone number TextView
+     */
     private void setupPhoneNumber() {
         TextView phoneNumberTV = findViewById(R.id.phoneNumberTV);
         phoneNumberTV.setText(String.format("+34 %s", getIntent().getStringExtra(INTENT_PHONE_NUMBER)));
     }
 
-    private void getOTPinputsViews() {
+
+    /**
+     * Finds the EditText views
+     */
+    private void getOTPInputsViews() {
         inputCode1ET = findViewById(R.id.inputCode1ET);
         inputCode2ET = findViewById(R.id.inputCode2ET);
         inputCode3ET = findViewById(R.id.inputCode3ET);
@@ -63,7 +69,10 @@ public class VerifyOTPActivity extends AppCompatActivity {
         inputCode6ET = findViewById(R.id.inputCode6ET);
     }
 
-    private void setupOTPinputs() {
+    /**
+     * Setups the listeners from the inputs TextViews
+     */
+    private void setupOTPInputs() {
         inputCode1ET.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
@@ -136,6 +145,9 @@ public class VerifyOTPActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * When the user clicks the send button, this method will be called in order to verify if the code is correct or not
+     */
     private void verifyCode() {
         verifyCodePB = findViewById(R.id.verifyCodePB);
         verifyCodeBT = findViewById(R.id.verifyCodeBT);
@@ -163,6 +175,10 @@ public class VerifyOTPActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Sends the verification code to Firebase
+     * @param code verification input by the user
+     */
     private void sendCode(String code) {
         changeViewsVisibility(View.VISIBLE, View.INVISIBLE);
         PhoneAuthCredential phoneAuthCredential = PhoneAuthProvider.getCredential(
@@ -192,6 +208,9 @@ public class VerifyOTPActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * If he user doesn't receive the code and clicks "Resend it", this method will resend the verification code
+     */
     private void resendCode() {
         PhoneAuthProvider.getInstance().verifyPhoneNumber(
                 "+34" + getIntent().getStringExtra(INTENT_PHONE_NUMBER),

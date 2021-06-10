@@ -63,6 +63,9 @@ public class UsersListCallsActivity extends AppCompatActivity implements OnMulti
         getContacts();
     }
 
+    /**
+     * Setups RecyclerView
+     */
     private void setupRV() {
         usersList = new ArrayList<>();
         usersListCallsAdapter = new UsersListCallsAdapter(UsersListCallsActivity.this, usersList, this);
@@ -74,6 +77,9 @@ public class UsersListCallsActivity extends AppCompatActivity implements OnMulti
         scrollBar.setBubbleTextProvider(i -> usersListCallsAdapter.userList.get(i).getUserName()); //dunno
     }
 
+    /**
+     * Get contacts from the contacts list of the user
+     */
     private void getContacts() {
         if (CURRENT_USER.getContacts() != null) {
             usersList.clear();
@@ -87,6 +93,10 @@ public class UsersListCallsActivity extends AppCompatActivity implements OnMulti
         }
     }
 
+    /**
+     * Gets the data from the user in order to bind the information into the views
+     * @param userID that we search in the Firebase in order to retrieve his data
+     */
     private void getContactData(String userID) {
         FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_USERS)
                 .child(userID)
@@ -107,6 +117,9 @@ public class UsersListCallsActivity extends AppCompatActivity implements OnMulti
                 });
     }
 
+    /**
+     * Checks the users list in order to sort it and set the adapter
+     */
     private void checkUserList() {
         if (usersList.size() > 0) {
             sortListAlphab();
@@ -117,6 +130,9 @@ public class UsersListCallsActivity extends AppCompatActivity implements OnMulti
         }
     }
 
+    /**
+     * Sorts the users from the list by username alphabetically
+     */
     private void sortListAlphab() {
         Collections.sort(usersList, (user, u1) -> {
             String s1 = user.getUserName();
@@ -125,6 +141,12 @@ public class UsersListCallsActivity extends AppCompatActivity implements OnMulti
         });
     }
 
+    /**
+     * Changes the visibility of some views
+     * @param allUsersVis changes visibility of the RecyclerView
+     * @param errorMessageVis changes visibility of the error message TextView
+     * @param noContactsVis changes visibility of the no contacts message CardView
+     */
     private void changeViewsVisibility(int allUsersVis, int errorMessageVis, int noContactsVis) {
         allUsersRV.setVisibility(allUsersVis);
         errorMessageTV.setVisibility(errorMessageVis);
@@ -139,7 +161,6 @@ public class UsersListCallsActivity extends AppCompatActivity implements OnMulti
 
     @Override
     public void onMultipleUsersAction(Boolean isMultipleUsersSelected) {
-        //groupIT.setEnabled(isMultipleUsersSelected);
         isGroupEnabled = isMultipleUsersSelected;
     }
 
@@ -149,6 +170,7 @@ public class UsersListCallsActivity extends AppCompatActivity implements OnMulti
         inflater.inflate(R.menu.menu_lists, menu);
         MenuItem groupIT = menu.findItem(R.id.groupIT);
         groupIT.setOnMenuItemClickListener(item -> {
+            //If the group button is enabled, the user will start a group call
             if (isGroupEnabled) {
                 Intent intent = new Intent(UsersListCallsActivity.this, InvitationOutgoingActivity.class);
                 intent.putExtra(INTENT_SELECTED_USERS, new Gson().toJson(usersListCallsAdapter.getSelectedUsers()));

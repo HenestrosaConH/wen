@@ -38,7 +38,6 @@ public class RecentChatsFragment extends Fragment {
                 .getReference(KEY_COLLECTION_RECENT_CHATS);
     private ValueEventListener incomingMessagesListener;
 
-    //private Map<String, RecentChat> recentChatMap;
     private List<RecentChat> recentChatList;
     private List<User> remoteUserList;
 
@@ -58,18 +57,24 @@ public class RecentChatsFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Setups the RecyclerView
+     * @param view fragment's inflater
+     */
     private void setupRV(View view) {
         recentChatList = new ArrayList<>();
         remoteUserList = new ArrayList<>();
-        //recentChatsAdapter = new RecentChatsAdapter(getContext(), recentChatList, remoteUser);
         recentChatsRV = view.findViewById(R.id.recentChatsRV);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         linearLayoutManager.setReverseLayout(true);
         linearLayoutManager.setStackFromEnd(true);
         recentChatsRV.setLayoutManager(linearLayoutManager);
-        //recentChatsRV.setAdapter(recentChatsAdapter);
     }
 
+    /**
+     * Setups the FloatingButton which opens the contacts list
+     * @param view fragment's inflater
+     */
     private void setupFab(View view) {
         view.findViewById(R.id.usersListFB).setOnClickListener(v -> {
             Intent intent = new Intent(getContext(), UsersListChatsActivity.class);
@@ -77,6 +82,9 @@ public class RecentChatsFragment extends Fragment {
         });
     }
 
+    /**
+     * Gets the recent chats from the user
+     */
     private void getRecentChats() {
         changeViewsVisibility(View.GONE, View.GONE, View.VISIBLE);
         incomingMessagesListener = recentChatsRef.addValueEventListener(new ValueEventListener() {
@@ -85,7 +93,6 @@ public class RecentChatsFragment extends Fragment {
                 final int[] i = {0};
                 recentChatList.clear();
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    Log.e("getRecentChats", dataSnapshot.getKey()+"");
                     String[] usersID = dataSnapshot.getKey().split("-");
                     if (FIREBASE_USER.getUid().equals(usersID[0]) || FIREBASE_USER.getUid().equals(usersID[1])) {
                         RecentChat recentChat = dataSnapshot.getValue(RecentChat.class);
@@ -110,6 +117,9 @@ public class RecentChatsFragment extends Fragment {
         });
     }
 
+    /**
+     * Gets the user that matches the recent chat data
+     */
     private void getRemoteUser() {
         remoteUserList.clear();
         for (RecentChat recentChat : recentChatList) {
@@ -120,7 +130,6 @@ public class RecentChatsFragment extends Fragment {
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
                             User remoteUser = snapshot.getValue(User.class);
                             remoteUser.setId(snapshot.getKey());
-                            Log.e("snaoshot", snapshot.getKey()+"");
                             remoteUserList.add(remoteUser);
                             if (remoteUserList.size() == recentChatList.size()) {
                                 recentChatsRV.setAdapter(new RecentChatsAdapter(
@@ -141,11 +150,17 @@ public class RecentChatsFragment extends Fragment {
         }
     }
 
+    /**
+     * Checks the size of the chatList
+     */
     private void checkChatList() {
         sortListAlphab(); //Ordering by timestamp
         getRemoteUser();
     }
 
+    /**
+     * Sorts the recentChatList by timestamp
+     */
     private void sortListAlphab() {
         Collections.sort(recentChatList, (recentChatList, rc1) -> {
             long s1 = recentChatList.getTimestamp();
@@ -154,6 +169,12 @@ public class RecentChatsFragment extends Fragment {
         });
     }
 
+    /**
+     * Changes the visibility of some views
+     * @param recentChatsVis changes visibility of the RecyclerView
+     * @param errorMessageVis changes visibility of the error message TextView
+     * @param welcomingVis changes visibility of the welcoming message CardView
+     */
     private void changeViewsVisibility(int recentChatsVis, int errorMessageVis, int welcomingVis) {
         recentChatsRV.setVisibility(recentChatsVis);
         errorMessageTV.setVisibility(errorMessageVis);

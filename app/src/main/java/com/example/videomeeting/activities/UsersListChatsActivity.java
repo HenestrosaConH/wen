@@ -50,6 +50,9 @@ public class UsersListChatsActivity extends AppCompatActivity {
         getContacts();
     }
 
+    /**
+     * Setups RecyclerView
+     */
     private void setupRV() {
         usersList = new ArrayList<>();
         usersListChatsAdapter = new UsersListChatsAdapter(UsersListChatsActivity.this, usersList);
@@ -61,6 +64,9 @@ public class UsersListChatsActivity extends AppCompatActivity {
         scrollBar.setBubbleTextProvider(i -> usersListChatsAdapter.userList.get(i).getUserName()); //dunno
     }
 
+    /**
+     * Get contacts from the contacts list of the user
+     */
     private void getContacts() {
         if (CURRENT_USER.getContacts() != null) {
             usersList.clear();
@@ -74,6 +80,10 @@ public class UsersListChatsActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Gets the data from the user in order to bind the information into the views
+     * @param userID that we search in the Firebase in order to retrieve his data
+     */
     private void getContactData(String userID) {
         FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_USERS)
                 .child(userID)
@@ -94,6 +104,9 @@ public class UsersListChatsActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Checks the users list in order to sort it and set the adapter
+     */
     private void checkUserList() {
         if (usersList.size() > 0) {
             sortListAlphab();
@@ -104,6 +117,9 @@ public class UsersListChatsActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Sorts the users from the list by username alphabetically
+     */
     private void sortListAlphab() {
         Collections.sort(usersList, (user, u1) -> {
             String s1 = user.getUserName();
@@ -112,6 +128,12 @@ public class UsersListChatsActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Changes the visibility of some views
+     * @param allUsersVis changes visibility of the RecyclerView
+     * @param errorMessageVis changes visibility of the error message TextView
+     * @param noContactsVis changes visibility of the no contacts message CardView
+     */
     private void changeViewsVisibility(int allUsersVis, int errorMessageVis, int noContactsVis) {
         allUsersRV.setVisibility(allUsersVis);
         errorMessageTV.setVisibility(errorMessageVis);

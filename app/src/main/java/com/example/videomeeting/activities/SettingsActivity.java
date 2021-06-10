@@ -46,13 +46,18 @@ public class SettingsActivity extends AppCompatActivity {
         bindThemeOption();
     }
 
+    /**
+     * Binds profile options
+     */
     private void bindProfileOption() {
         CardView profileCV = findViewById(R.id.profileCV);
         profileCV.setOnClickListener(v -> startActivity(new Intent(SettingsActivity.this, ProfileActivity.class)
                 .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)));
-
     }
 
+    /**
+     * Binds notifications options
+     */
     private void bindNotifOption() {
         CardView notificationsCV = findViewById(R.id.notificationsCV);
         notificationsCV.setOnClickListener(v ->
@@ -61,16 +66,25 @@ public class SettingsActivity extends AppCompatActivity {
         );
     }
 
+    /**
+     * Binds language options
+     */
     private void bindLangOption() {
         CardView languageCV = findViewById(R.id.languageCV);
         languageCV.setOnClickListener(v -> changeLanguage());
     }
 
+    /**
+     * Binds theme options
+     */
     private void bindThemeOption() {
         CardView themeCV = findViewById(R.id.themeCV);
         themeCV.setOnClickListener(v -> changeTheme());
     }
 
+    /**
+     * Shows language options
+     */
     private void changeLanguage() {
         String[] items = {"Español", "English", "简体中文"};
         if (prefManager.getSharedPreferences().contains(PREF_LANGUAGE)) {
@@ -135,6 +149,9 @@ public class SettingsActivity extends AppCompatActivity {
                 .create().show();
     }
 
+    /**
+     * Shows theme options
+     */
     private void changeTheme() {
         String[] items = {getString(R.string.day), getString(R.string.night)};
         checkedItem = 0; //day by default

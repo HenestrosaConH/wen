@@ -26,7 +26,6 @@ import com.example.videomeeting.models.User;
 import com.example.videomeeting.utils.Constants;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -40,14 +39,12 @@ public class RecentCallsAdapter extends RecyclerView.Adapter<RecentCallsAdapter.
     private final List<User> userList;
     private final Map<String, Call> callMap;
 
-    private final List<User> selectedUsers;
     private Dialog profileDG;
 
     public RecentCallsAdapter(Context context, List<User> userList, Map<String, Call> callMap) {
         this.context = context;
         this.userList = userList;
         this.callMap = callMap;
-        selectedUsers = new ArrayList<>();
     }
 
     @NonNull

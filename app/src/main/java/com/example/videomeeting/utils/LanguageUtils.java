@@ -8,6 +8,11 @@ import java.util.Locale;
 
 public class LanguageUtils {
 
+    /**
+     * Changes the language of the app
+     * @param context
+     * @param languageCode Two letters that will indicate the Locale code of the language
+     */
     public static void setLocale(Context context, String languageCode) {
         Resources activityRes = context.getResources();
         Configuration activityConf = activityRes.getConfiguration();

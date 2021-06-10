@@ -50,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //enablePersistence();
         checkPreferences();
         setCurrentUserID();
 
@@ -64,6 +63,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Setups the ViewPager
+     */
     private void setupViewPager() {
         ViewPager2 mainVP2 = findViewById(R.id.mainVP2);
         mainVP2.setAdapter(new MainPagerAdapter(this));
@@ -106,6 +108,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Sets the current user ID and gets the user from the DB in order to store it on a static variable
+     */
     private void setCurrentUserID() {
         if (FIREBASE_USER == null || CURRENT_USER == null) {
             FIREBASE_USER = FirebaseAuth.getInstance().getCurrentUser();
@@ -124,6 +129,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Checks the preferences of the app at the start
+     */
     private void checkPreferences() {
         preferenceManager = new PreferenceManager(getApplicationContext());
         if (preferenceManager.getBoolean(PREF_IS_DARK_THEME_ON)) {
@@ -140,6 +148,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Sends the user FCM token to Firebase
+     * @param token Will be used to receive/make calls
+     */
     private void sendFCMTokenToDB(String token) {
         FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_USERS)
                 .child(FIREBASE_USER.getUid())
@@ -150,6 +162,9 @@ public class MainActivity extends AppCompatActivity {
                 );
     }
 
+    /**
+     * Signs out the user and removes some preferences related to the current user of the instance
+     */
     private void signOut() {
         FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_USERS)
                 .child(FIREBASE_USER.getUid())
@@ -165,10 +180,9 @@ public class MainActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Toast.makeText(MainActivity.this, getString(R.string.unable_to_sign_out), Toast.LENGTH_SHORT).show());
     }
 
-    private void enablePersistence() {
-        FirebaseDatabase.getInstance().setPersistenceEnabled(true);
-    }
-
+    /**
+     * Setups ActionBar (and Toolbar)
+     */
     private void setupActionBar() {
         Toolbar toolbar = findViewById(R.id.toolbar);
         toolbar.setTitle(getString(R.string.app_name));
@@ -193,6 +207,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Deploys the dialog warning the user about the battery optimization and sets the actions required to disable it
+     */
     private void checkForBatteryOptimization() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);

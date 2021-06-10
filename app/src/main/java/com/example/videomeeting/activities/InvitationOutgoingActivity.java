@@ -103,6 +103,9 @@ public class InvitationOutgoingActivity extends AppCompatActivity {
         setupCall();
     }
 
+    /**
+     * Setups the ringtone when the call is incoming
+     */
     private void setupMediaPlayer() {
         mediaPlayer = MediaPlayer.create(InvitationOutgoingActivity.this, R.raw.ringback_tone);
         mediaPlayer.start();
@@ -116,6 +119,9 @@ public class InvitationOutgoingActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Setups the type of the invitation into the views
+     */
     private void setCallType() {
         TextView outgoingTV = findViewById(R.id.outgoingTV);
         ImageView callTypeIV = findViewById(R.id.callTypeIV);
@@ -132,6 +138,9 @@ public class InvitationOutgoingActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Setups the user data into the views
+     */
     private void bindUserData() {
         defaultProfileTV = findViewById(R.id.defaultProfileTV);
         usernameTV = findViewById(R.id.usernameTV);
@@ -153,6 +162,9 @@ public class InvitationOutgoingActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Setups the behaviour of the reject ImageView
+     */
     private void setupRejectIV() {
         ImageView rejectIV = findViewById(R.id.rejectIV);
         rejectIV.setOnClickListener(v -> {
@@ -167,6 +179,9 @@ public class InvitationOutgoingActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Setups the data of the call before start it
+     */
     private void setupCall() {
         FirebaseInstanceId.getInstance().getInstanceId().addOnCompleteListener(task -> {
             if (task.isSuccessful() && task.getResult() != null) {
@@ -188,6 +203,12 @@ public class InvitationOutgoingActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Starts the call
+     * @param callType Indicates the type of invitation
+     * @param receiverToken Contains the tokens of the receivers
+     * @param receivers Contains the User objects that will receive the invitation
+     */
     private void initiateCall(String callType, String receiverToken, ArrayList<User> receivers) {
         try {
             JSONArray tokens = new JSONArray();
@@ -209,7 +230,6 @@ public class InvitationOutgoingActivity extends AppCompatActivity {
                 defaultProfileTV.setVisibility(View.GONE);
                 usernameTV.setText(usernames.toString());
             }
-            Log.e("smtnh else", "to say");
 
             tokens.put(receiverToken);
 
@@ -272,6 +292,11 @@ public class InvitationOutgoingActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Sends the FCM notification to the receivers
+     * @param remoteMessageBody Contains the information of the invitation
+     * @param type Type of invitation
+     */
     private void sendRemoteMessage(String remoteMessageBody, String type) {
         ApiClient.getClient().create(ApiService.class).sendRemoteMessage(
                 remoteMessageBody
@@ -300,6 +325,11 @@ public class InvitationOutgoingActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Cancels the invitation sending a FCM notification indicating that it has been cancelled
+     * @param receiverToken Contains the tokens of the receivers
+     * @param receivers Contains the User objects that will receive the invitation
+     */
     private void cancelInvitation(String receiverToken, ArrayList<User> receivers) {
         try {
             JSONArray tokens = new JSONArray();
@@ -333,6 +363,9 @@ public class InvitationOutgoingActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Gets the response of the receivers of the invitation
+     */
     private final BroadcastReceiver invitationResponseReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -370,6 +403,9 @@ public class InvitationOutgoingActivity extends AppCompatActivity {
         }
     };
 
+    /**
+     * If the call has been missed, we store the changes into Firebase
+     */
     private void setCallMissedTrue() {
         callsRef.child(FIREBASE_USER.getUid())
                 .child(timestamp)

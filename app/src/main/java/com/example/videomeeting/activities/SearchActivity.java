@@ -30,11 +30,17 @@ public class SearchActivity extends AppCompatActivity {
         setupViewPager();
     }
 
+    /**
+     * Setups ActionBar
+     */
     private void setupActionBar() {
         getSupportActionBar().setTitle("");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 
+    /**
+     * Setups ViewPager
+     */
     private void setupViewPager() {
         searchVP2 = findViewById(R.id.searchVP2);
         searchVP2.setAdapter(new SearchPagerAdapter(this));
@@ -92,6 +98,9 @@ public class SearchActivity extends AppCompatActivity {
         return true;
     }
 
+    /**
+     * Checks the instance of the current fragment and uses the search method by passing the query input
+     */
     private void searchInCurrentFrag(String query, int position) {
         if (query != null) {
             Fragment currentFragment = getSupportFragmentManager().findFragmentByTag("f" + position);

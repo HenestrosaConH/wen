@@ -46,6 +46,9 @@ public class OnboardingActivity extends AppCompatActivity {
         setupButtons();
     }
 
+    /**
+     * Checks if it is the first execution of the app or not
+     */
     private void hasBeenOpened() {
         if (prefManager.getBoolean(PREF_HAS_INTRO_BEEN_OPENED)) {
             Intent intent = new Intent(getApplicationContext(), SendOTPActivity.class );
@@ -54,6 +57,9 @@ public class OnboardingActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Loads the fragments that will be showed on the onboarding
+     */
     private void loadFragments() {
         onboardingItems = new ArrayList<>();
         onboardingItems.add(new OnboardingItem(getString(R.string.app_name), getString(R.string.app_description), R.drawable.ic_launcher_intro));
@@ -63,6 +69,9 @@ public class OnboardingActivity extends AppCompatActivity {
         onboardingItems.add(new OnboardingItem(getString(R.string.cloud_based), getString(R.string.cloud_description), R.drawable.ic_onboarding_cloud));
     }
 
+    /**
+     * Setups the ViewPager
+     */
     private void setupViewPager() {
         screenVP = findViewById(R.id.screenVP);
         OnboardingAdapter onboardingAdapter = new OnboardingAdapter(this, onboardingItems);
@@ -86,6 +95,9 @@ public class OnboardingActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Setups the buttons from the activity and their behaviour
+     */
     private void setupButtons() {
         skipTV = findViewById(R.id.skipTV);
         skipTV.setOnClickListener(v -> screenVP.setCurrentItem(onboardingItems.size()));

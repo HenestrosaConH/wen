@@ -25,16 +25,13 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     private final List<Message> messageList;
     public boolean isDateNeeded = false;
-    //private final String imageURL;
 
     //Result codes
     public static final int ITEM_MSG_SENT = 0;
     public static final int ITEM_MSG_RECEIVED = 1;
-    public static final int ITEM_MSG_RECEIVED_GROUP = 2;
 
     public MessagesAdapter(List<Message> messageList) {
         this.messageList = messageList;
-        //this.imageURL = imageURL;
     }
 
     @NonNull
@@ -50,10 +47,6 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 view = LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.item_msg_received, parent, false);
                 return new MessageReceivedHolder(view);
-            /*case ITEM_MSG_RECEIVED_GROUP:
-                view = LayoutInflater.from(parent.getContext())
-                        .inflate(R.layout.item_msg_received_group, parent, false);
-                return new MessageReceivedGroupHolder(view);*/
         }
         return null;
     }
@@ -68,9 +61,6 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             case ITEM_MSG_RECEIVED:
                 ((MessageReceivedHolder) holder).bind(messageList.get(position), isDateNeeded);
                 break;
-            /*case ITEM_MSG_RECEIVED_GROUP:
-                ((MessageReceivedGroupHolder) holder).bind(chat);
-                break;*/
         }
     }
 
@@ -127,9 +117,6 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         } else {
             return ITEM_MSG_RECEIVED;
         }
-        /*else if (!chat.getSenderID().equals(Constants.CURRENT_USER.getId())
-            && some other condition)
-            return ITEM_MSG_RECEIVED_GROUP;*/
     }
 
     ////////////////////////////////////////////////////////////////
@@ -200,42 +187,4 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         SimpleDateFormat formatter = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
         dateTV.setText(formatter.format(message.getTimestamp()));
     }
-
-    /*
-    class MessageReceivedGroupHolder extends RecyclerView.ViewHolder {
-        EmojiconTextView messageTV;
-        TextView timeTV, usernameTV, defaultProfileIV;
-        ImageView profileIV;
-
-        MessageReceivedGroupHolder(View itemView) {
-            super(itemView);
-
-            messageTV = itemView.findViewById(R.id.messageTV);
-            timeTV = itemView.findViewById(R.id.timeTV);
-            usernameTV = itemView.findViewById(R.id.usernameTV);
-            defaultProfileIV = itemView.findViewById(R.id.defaultProfileIV);
-            profileIV = itemView.findViewById(R.id.profileIV);
-        }
-
-        void bind(Chat chat) {
-            if (imageURL.equals("default")) { //PROBABLEMENTE TENGA QUE METER UNA LISTA DE USUARIOS
-                defaultProfileIV.setVisibility(View.VISIBLE);
-                //defaultProfileIV.setText(user.getUserName().substring(0,1);
-            } else {
-                Glide.with(context)
-                        .load(imageURL)
-                        .circleCrop()
-                        .into(profileIV);
-            }
-
-            //usernameTV.setText(user.getUserName());
-            messageTV.setText(chat.getMessage());
-
-            timeTV.setText(
-                    DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault())
-                            .format(chat.getDate())
-            );
-        }
-    }
-     */
 }

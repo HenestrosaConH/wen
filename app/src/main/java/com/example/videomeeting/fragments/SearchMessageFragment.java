@@ -62,6 +62,10 @@ public class SearchMessageFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Setups the RecyclerView
+     * @param view fragment's inflater
+     */
     private void setupRV(View view) {
         messageList = new ArrayList<>();
         userList = new ArrayList<>();
@@ -73,6 +77,10 @@ public class SearchMessageFragment extends Fragment {
         searchMessageRV.setLayoutManager(linearLayoutManager);
     }
 
+    /**
+     * Gets the query and searches on the messages node to retrieve the results
+     * @param query Text contained on the message searched by the user
+     */
     public void searchMessage(String query) {
         messageList.clear();
         userList.clear();
@@ -119,13 +127,13 @@ public class SearchMessageFragment extends Fragment {
                                             }
                                         });
                                     } else {
-                                        setViewsVisibility(View.GONE, View.GONE, View.VISIBLE);
+                                        changeViewsVisibility(View.GONE, View.GONE, View.VISIBLE);
                                     }
                                 }
                             }
                         }
                     } else {
-                        setViewsVisibility(View.GONE, View.GONE, View.VISIBLE);
+                        changeViewsVisibility(View.GONE, View.GONE, View.VISIBLE);
                     }
                 }
 
@@ -134,25 +142,39 @@ public class SearchMessageFragment extends Fragment {
                 }
             });
         } else {
-            setViewsVisibility(View.GONE, View.VISIBLE, View.GONE);
+            changeViewsVisibility(View.GONE, View.VISIBLE, View.GONE);
         }
     }
 
-    private void setViewsVisibility(int searchVis, int searchTipVis, int notFoundVis) {
+    /**
+     * Changes the visibility of some views
+     * @param searchVis changes visibility of the RecyclerView
+     * @param searchTipVis changes visibility of the tip CardView
+     * @param notFoundVis changes visibility of the not found message TextView
+     */
+    private void changeViewsVisibility(int searchVis, int searchTipVis, int notFoundVis) {
         searchMessageRV.setVisibility(searchVis);
         searchTipCV.setVisibility(searchTipVis);
         notFoundTV.setVisibility(notFoundVis);
     }
 
+    /**
+     * Checks the messageList and refreshes the RecyclerView
+     */
     private void checkList() {
         if (messageList.size() > 0) {
             refreshRV(messageList, userList);
-            setViewsVisibility(View.VISIBLE, View.GONE, View.GONE);
+            changeViewsVisibility(View.VISIBLE, View.GONE, View.GONE);
         } else {
-            setViewsVisibility(View.GONE, View.GONE, View.VISIBLE);
+            changeViewsVisibility(View.GONE, View.GONE, View.VISIBLE);
         }
     }
 
+    /**
+     * Refreshes the RecyclerView if new values have been found
+     * @param searchedMessages Contains the results from the query
+     * @param searchedMessagesUsers Contains the user that sent the message from the list above
+     */
     private void refreshRV(@NotNull List<Message> searchedMessages,
                            @NotNull List<User> searchedMessagesUsers) {
         SearchMessageAdapter searchMessageAdapter = new SearchMessageAdapter(

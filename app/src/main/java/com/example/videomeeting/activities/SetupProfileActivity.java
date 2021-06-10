@@ -70,6 +70,9 @@ public class SetupProfileActivity extends AppCompatActivity {
         checkData();
     }
 
+    /**
+     * Checks if the profile has been already setup
+     */
     private void isProfSetup() {
         if (!prefManager.getBoolean(PREF_NEEDS_TO_SETUP_PROFILE)) {
             Intent i = new Intent(SetupProfileActivity.this, MainActivity.class);
@@ -78,11 +81,17 @@ public class SetupProfileActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Setup profile ImageView
+     */
     private void setupProfileIV() {
         profileIV = findViewById(R.id.profileIV);
         profileIV.setOnClickListener(view -> pickImage());
     }
 
+    /**
+     * Setup username EditText
+     */
     private void setupUserNameET() {
         EditText usernameET = findViewById(R.id.usernameET);
         usernameET.addTextChangedListener(new TextWatcher()  {
@@ -100,6 +109,9 @@ public class SetupProfileActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Checks the validity of the username input by the user
+     */
     private void checkUserName(EditText usernameET) {
         if (username.isEmpty()) {
             usernameET.setError(getString(R.string.enter_user_name));
@@ -130,6 +142,9 @@ public class SetupProfileActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * When we click on the setup profile Button, the method makes sure that the input information is correct
+     */
     private void checkData() {
         ProgressBar setupProfilePB = findViewById(R.id.setupProfilePB);
         Button setupProfileBT = findViewById(R.id.setupProfileBT);
@@ -142,6 +157,9 @@ public class SetupProfileActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * If the information is valid, then we create the user into Firebase
+     */
     private void sendDataToDB(ProgressBar setupProfilePB, Button setupProfileBT) {
         setupProfilePB.setVisibility(View.VISIBLE);
         setupProfileBT.setVisibility(View.INVISIBLE);
@@ -166,6 +184,9 @@ public class SetupProfileActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Picks image from gallery
+     */
     private void pickImage() {
         Intent i = new Intent();
         i.setType("image/*");
@@ -173,12 +194,18 @@ public class SetupProfileActivity extends AppCompatActivity {
         startActivityForResult(i, ASK_FOR_IMAGE);
     }
 
+    /**
+     * Gets file extension
+     */
     private String getFileExtension(Uri uri) {
         ContentResolver contentResolver = SetupProfileActivity.this.getContentResolver();
         MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
         return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri));
     }
 
+    /**
+     * Uploads the image selected by the user into Firebase
+     */
     private void uploadImage() {
         final ProgressDialog progressDialog = new ProgressDialog(SetupProfileActivity.this);
         progressDialog.setMessage(getString(R.string.uploading));

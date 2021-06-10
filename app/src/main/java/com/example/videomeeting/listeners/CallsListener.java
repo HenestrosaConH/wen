@@ -17,6 +17,11 @@ public class CallsListener {
 
     public CallsListener() {}
 
+    /**
+     * Initiates received video call
+     * @param user User calling
+     * @param context Application context
+     */
     public void initiateVideoCall(User user, Context context) {
         if (user.getFcmToken() == null || user.getFcmToken().trim().isEmpty())
             Toast.makeText(context, user.getUserName() + " " + context.getString(R.string.is_not_available), Toast.LENGTH_SHORT).show();
@@ -28,6 +33,11 @@ public class CallsListener {
         }
     }
 
+    /**
+     * Initiates received video call
+     * @param user User calling
+     * @param context Application context
+     */
     public void initiateCall(User user, Context context) {
         if (user.getFcmToken() == null || user.getFcmToken().trim().isEmpty())
             Toast.makeText(context, user.getUserName() + " " + context.getString(R.string.is_not_available), Toast.LENGTH_SHORT).show();
