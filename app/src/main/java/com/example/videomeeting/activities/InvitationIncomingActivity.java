@@ -64,7 +64,7 @@ public class InvitationIncomingActivity extends AppCompatActivity {
     }
 
     /**
-     * Checks if the invitation is a call or a video call
+     * Sets if the invitation is a call or a video call
      */
     private void setCallType() {
         TextView incomingTV = findViewById(R.id.incomingTV);
