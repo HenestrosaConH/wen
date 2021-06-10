@@ -14,7 +14,6 @@ public class OnboardingItem {
     public String getTitle() {
         return title;
     }
-
     public void setTitle(String title) {
         this.title = title;
     }
@@ -22,7 +21,6 @@ public class OnboardingItem {
     public String getDescription() {
         return description;
     }
-
     public void setDescription(String description) {
         this.description = description;
     }
@@ -30,7 +28,6 @@ public class OnboardingItem {
     public int getImage() {
         return image;
     }
-
     public void setImage(int image) {
         this.image = image;
     }

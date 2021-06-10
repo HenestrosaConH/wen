@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/layout"
+    android:background="@color/colorBackground"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -123,23 +124,23 @@
         android:id="@+id/noMessagesCV"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_marginStart="25dp"
+        android:layout_marginEnd="25dp"
         app:cardBackgroundColor="@color/colorPrimary"
         app:cardCornerRadius="12dp"
         app:cardElevation="0dp"
-        android:visibility="gone"
-        app:cardPreventCornerOverlap="false"
-        app:cardUseCompatPadding="true"
         app:layout_constraintBottom_toTopOf="@id/bottomLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbarLY">
 
         <TextView
-            android:id="@+id/noMessagesTV"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:fontFamily="@font/ubuntu_regular"
             android:gravity="center"
+            android:lineSpacingExtra="10dp"
             android:layout_margin="14dp"
             android:includeFontPadding="false"
             android:textColor="@color/colorTextIcon"
@@ -151,7 +152,7 @@
     <RelativeLayout
         android:id="@+id/bottomLayout"
         android:layout_width="0dp"
-        android:layout_height="60dp"
+        android:layout_height="wrap_content"
         android:background="@color/colorBackground"
         android:padding="5dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -159,34 +160,43 @@
         app:layout_constraintStart_toStartOf="parent">
 
         <LinearLayout
+            android:id="@+id/messageBox"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginEnd="4dp"
             android:layout_toStartOf="@+id/sendIV"
+            android:layout_centerInParent="true"
             android:background="@drawable/background_msg_textbox"
             android:orientation="horizontal">
 
             <ImageView
                 android:id="@+id/emojiIV"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
                 android:foreground="@drawable/ripple"
                 android:padding="8dp"
-                android:layout_gravity="center"
+                android:layout_gravity="bottom"
                 android:src="@drawable/ic_emoji"
                 android:contentDescription="@string/app_name" />
 
             <hani.momanii.supernova_emoji_library.Helper.EmojiconEditText
                 android:id="@+id/messageET"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
                 android:layout_marginStart="3dp"
-                android:layout_marginEnd="4dp"
+                android:layout_marginEnd="20dp"
+                android:layout_gravity="center"
+                android:inputType="textMultiLine"
+                android:minLines="1"
+                android:maxLines="4"
+                android:scrollbars="vertical"
+                android:fadeScrollbars="false"
+                android:layout_weight="1"
                 android:background="@android:color/transparent"
+                android:textColor="@color/colorTextMessageBox"
                 android:textColorHint="@color/colorSecondaryText"
                 android:hint="@string/message"
-                android:importantForAutofill="no"
-                android:inputType="text" />
+                android:importantForAutofill="no" />
 
         </LinearLayout>
 
@@ -195,9 +205,11 @@
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:foreground="@drawable/ripple"
+            android:layout_gravity="bottom"
             android:padding="10dp"
             android:layout_marginEnd="3dp"
             android:layout_alignParentEnd="true"
+            android:layout_alignBottom="@+id/messageBox"
             android:src="@drawable/ic_send"
             android:background="@drawable/background_msg_button_send"/>
 

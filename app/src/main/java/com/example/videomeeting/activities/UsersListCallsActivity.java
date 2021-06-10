@@ -2,6 +2,7 @@ package com.example.videomeeting.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -39,7 +40,7 @@ import static com.example.videomeeting.utils.Constants.INTENT_ARE_MULTIPLE_SELEC
 import static com.example.videomeeting.utils.Constants.INTENT_SELECTED_USERS;
 import static com.example.videomeeting.utils.Constants.KEY_COLLECTION_USERS;
 
-public class UsersListCallsActivityOn extends AppCompatActivity implements OnMultipleCallsListener {
+public class UsersListCallsActivity extends AppCompatActivity implements OnMultipleCallsListener {
 
     public List<User> usersList;
     private UsersListCallsAdapter usersListCallsAdapter;
@@ -54,7 +55,7 @@ public class UsersListCallsActivityOn extends AppCompatActivity implements OnMul
         setContentView(R.layout.activity_users_list);
 
         setTitle(getString(R.string.my_contacts));
-        Objects.requireNonNull(UsersListCallsActivityOn.this.getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+        UsersListCallsActivity.this.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         errorMessageTV = findViewById(R.id.errorMessageTV);
         noContactsCV = findViewById(R.id.noContactsCV);
@@ -64,9 +65,9 @@ public class UsersListCallsActivityOn extends AppCompatActivity implements OnMul
 
     private void setupRV() {
         usersList = new ArrayList<>();
-        usersListCallsAdapter = new UsersListCallsAdapter(UsersListCallsActivityOn.this, usersList, this);
+        usersListCallsAdapter = new UsersListCallsAdapter(UsersListCallsActivity.this, usersList, this);
         allUsersRV = findViewById(R.id.allUsersRV);
-        allUsersRV.setLayoutManager(new LinearLayoutManager(UsersListCallsActivityOn.this));
+        allUsersRV.setLayoutManager(new LinearLayoutManager(UsersListCallsActivity.this));
         allUsersRV.setAdapter(usersListCallsAdapter);
         BubbleScrollBar scrollBar = findViewById(R.id.scrollbar);
         scrollBar.attachToRecyclerView(allUsersRV);
@@ -74,9 +75,9 @@ public class UsersListCallsActivityOn extends AppCompatActivity implements OnMul
     }
 
     private void getContacts() {
-        if (CURRENT_USER.getContactedUsers() != null) {
+        if (CURRENT_USER.getContacts() != null) {
             usersList.clear();
-            for (Map.Entry<String, Boolean> contactedUser : CURRENT_USER.getContactedUsers().entrySet()) {
+            for (Map.Entry<String, Boolean> contactedUser : CURRENT_USER.getContacts().entrySet()) {
                 if (contactedUser.getValue()) {
                     getContactData(contactedUser.getKey());
                 }
@@ -92,7 +93,9 @@ public class UsersListCallsActivityOn extends AppCompatActivity implements OnMul
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        usersList.add(snapshot.getValue(User.class));
+                        User user = snapshot.getValue(User.class);
+                        user.setId(snapshot.getKey());
+                        usersList.add(user);
                         checkUserList();
                     }
 
@@ -106,7 +109,7 @@ public class UsersListCallsActivityOn extends AppCompatActivity implements OnMul
 
     private void checkUserList() {
         if (usersList.size() > 0) {
-            sortUsersAlphab();
+            sortListAlphab();
             usersListCallsAdapter.notifyDataSetChanged();
             changeViewsVisibility(View.VISIBLE, View.GONE, View.GONE);
         } else {
@@ -114,7 +117,7 @@ public class UsersListCallsActivityOn extends AppCompatActivity implements OnMul
         }
     }
 
-    private void sortUsersAlphab() {
+    private void sortListAlphab() {
         Collections.sort(usersList, (user, u1) -> {
             String s1 = user.getUserName();
             String s2 = u1.getUserName();
@@ -146,15 +149,14 @@ public class UsersListCallsActivityOn extends AppCompatActivity implements OnMul
         inflater.inflate(R.menu.menu_lists, menu);
         MenuItem groupIT = menu.findItem(R.id.groupIT);
         groupIT.setOnMenuItemClickListener(item -> {
-            if (!isGroupEnabled)
-                Toast.makeText(UsersListCallsActivityOn.this, getString(R.string.group_disabled_tip), Toast.LENGTH_SHORT).show();
-            else {
-                Intent intent = new Intent(UsersListCallsActivityOn.this, InvitationOutgoingActivity.class);
+            if (isGroupEnabled) {
+                Intent intent = new Intent(UsersListCallsActivity.this, InvitationOutgoingActivity.class);
                 intent.putExtra(INTENT_SELECTED_USERS, new Gson().toJson(usersListCallsAdapter.getSelectedUsers()));
-                intent.putExtra(INTENT_CALL_TYPE, INTENT_CALL_TYPE_VIDEO);
                 intent.putExtra(INTENT_CALL_TYPE, INTENT_CALL_TYPE_VIDEO);
                 intent.putExtra(INTENT_ARE_MULTIPLE_SELECTED_USERS, true);
                 startActivity(intent);
+            } else {
+                Toast.makeText(UsersListCallsActivity.this, getString(R.string.group_disabled_tip), Toast.LENGTH_SHORT).show();
             }
             return false;
         });

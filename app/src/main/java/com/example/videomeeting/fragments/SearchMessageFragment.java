@@ -1,6 +1,7 @@
 package com.example.videomeeting.fragments;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,17 +29,16 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.videomeeting.utils.Constants.BUNDLE_SEARCH;
-import static com.example.videomeeting.utils.Constants.CURRENT_USER;
-import static com.example.videomeeting.utils.Constants.KEY_COLLECTION_MESSAGE;
-import static com.example.videomeeting.utils.Constants.KEY_COLLECTION_USER;
+import static com.example.videomeeting.utils.Constants.FIREBASE_USER;
+import static com.example.videomeeting.utils.Constants.KEY_COLLECTION_MESSAGES;
+import static com.example.videomeeting.utils.Constants.KEY_COLLECTION_USERS;
 
 public class SearchMessageFragment extends Fragment {
 
-    private final DatabaseReference messagesReference = FirebaseDatabase.getInstance().getReference()
-            .child(KEY_COLLECTION_MESSAGE);
-    private final DatabaseReference usersReference = FirebaseDatabase.getInstance().getReference()
-            .child(KEY_COLLECTION_USER);
+    private final DatabaseReference messagesRef = FirebaseDatabase.getInstance().getReference()
+            .child(KEY_COLLECTION_MESSAGES);
+    private final DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference()
+            .child(KEY_COLLECTION_USERS);
 
     private TextView notFoundTV;
     private RecyclerView searchMessageRV;
@@ -67,60 +67,75 @@ public class SearchMessageFragment extends Fragment {
         userList = new ArrayList<>();
         searchMessageRV = view.findViewById(R.id.searchMessageRV);
         searchMessageRV.setHasFixedSize(true);
-        searchMessageRV.setLayoutManager(new LinearLayoutManager(getContext()));
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
+        linearLayoutManager.setStackFromEnd(true);
+        linearLayoutManager.setReverseLayout(true);
+        searchMessageRV.setLayoutManager(linearLayoutManager);
     }
 
     public void searchMessage(String query) {
-        messageList = new ArrayList<>();
-        userList = new ArrayList<>();
+        messageList.clear();
+        userList.clear();
 
-        messagesReference.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    boolean doesMessageFitQuery = false;
-                    Message message = snapshot.getValue(Message.class);
-                    String[] wordsFromMessage = message.getMessage().split(" ");
-                    int i;
-                    for (i = 0; i < wordsFromMessage.length; i++) {
-                        if (wordsFromMessage[i].toLowerCase().startsWith(query.trim().toLowerCase())) {
-                            doesMessageFitQuery = true;
-                            break;
-                        }
-                    }
+        if (query != null && !TextUtils.isEmpty(query)) {
+            messagesRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.getChildrenCount() > 0) {
+                        for (DataSnapshot chatIDNode : snapshot.getChildren()) {
+                            if (FIREBASE_USER.getUid().equals(chatIDNode.getKey().substring(0, 28))
+                                    || FIREBASE_USER.getUid().equals(chatIDNode.getKey().substring(29, 57))) {
+                                String remoteUserID;
+                                if (FIREBASE_USER.getUid().equals(chatIDNode.getKey().substring(0, 28))) {
+                                    remoteUserID = chatIDNode.getKey().substring(29, 57);
+                                } else {
+                                    remoteUserID = chatIDNode.getKey().substring(0, 28);
+                                }
+                                for (DataSnapshot timestampNode : chatIDNode.getChildren()) {
+                                    boolean doesMessageFitQuery = false;
+                                    Message message = timestampNode.getValue(Message.class);
+                                    message.setTimestamp(Long.parseLong(timestampNode.getKey()));
+                                    String[] wordsFromMessage = message.getMessage().split(" ");
+                                    int i;
+                                    for (i = 0; i < wordsFromMessage.length; i++) {
+                                        if (wordsFromMessage[i].toLowerCase().startsWith(query.trim().toLowerCase())) {
+                                            doesMessageFitQuery = true;
+                                            break;
+                                        }
+                                    }
+                                    if (doesMessageFitQuery) {
+                                        messageList.add(message);
+                                        usersRef.child(remoteUserID).addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                User user = snapshot.getValue(User.class);
+                                                user.setId(snapshot.getKey());
+                                                userList.add(user);
+                                                checkList();
+                                            }
 
-                    if (doesMessageFitQuery
-                            && (message.getSenderID().equals(CURRENT_USER.getId())
-                            || message.getReaderID().equals(CURRENT_USER.getId()))) {
-
-                        String searchUserID;
-                        if (message.getReaderID().equals(CURRENT_USER.getId())) {
-                            searchUserID = message.getSenderID();
-                        } else {
-                            searchUserID = message.getReaderID();
-                        }
-                        messageList.add(message);
-
-                        usersReference.child(searchUserID).addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                User user = snapshot.getValue(User.class);
-                                userList.add(user);
-                                checkList();
+                                            @Override
+                                            public void onCancelled(@NonNull DatabaseError error) {
+                                            }
+                                        });
+                                    } else {
+                                        setViewsVisibility(View.GONE, View.GONE, View.VISIBLE);
+                                    }
+                                }
                             }
-
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError error) { }
-                        });
+                        }
                     } else {
                         setViewsVisibility(View.GONE, View.GONE, View.VISIBLE);
                     }
                 }
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) { }
-        });
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                }
+            });
+        } else {
+            setViewsVisibility(View.GONE, View.VISIBLE, View.GONE);
+        }
     }
 
     private void setViewsVisibility(int searchVis, int searchTipVis, int notFoundVis) {

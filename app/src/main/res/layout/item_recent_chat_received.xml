@@ -58,7 +58,6 @@
         android:fontFamily="@font/ubuntu_bold"
         android:includeFontPadding="false"
         android:singleLine="true"
-        android:text="TextView"
         android:textSize="18sp"
         android:textColor="@color/colorPrimaryText"
         app:layout_constraintEnd_toStartOf="@+id/dateLastMesTV"
@@ -69,11 +68,9 @@
         android:id="@+id/statusCV"
         android:layout_width="10dp"
         android:layout_height="10dp"
-        android:layout_marginEnd="12dp"
-        android:layout_marginBottom="20dp"
         app:cardCornerRadius="10dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/previewMessageTV">
+        app:layout_constraintBottom_toBottomOf="@id/profileAux"
+        app:layout_constraintEnd_toEndOf="@id/profileAux">
 
         <ImageView
             android:id="@+id/offlineIV"
@@ -112,7 +109,6 @@
         android:ellipsize="end"
         android:lineSpacingExtra="1sp"
         android:layout_marginEnd="17dp"
-        android:text="123123132123123132132123123132123123132132123123132123123132132123123132123123132132123123132123123132132123123132123123132132123123132123123132132"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@id/usernameTV"
         app:layout_constraintBottom_toBottomOf="@+id/profileAux"
@@ -125,7 +121,6 @@
         android:layout_marginTop="13dp"
         android:layout_marginEnd="8dp"
         android:fontFamily="@font/ubuntu_regular"
-        android:text="28.03.01"
         android:textSize="13sp"
         android:textColor="@color/colorSecondaryText"
         app:layout_constraintEnd_toEndOf="parent"

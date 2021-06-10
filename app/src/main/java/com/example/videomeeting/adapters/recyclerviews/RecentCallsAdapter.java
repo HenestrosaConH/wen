@@ -13,6 +13,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -37,7 +38,7 @@ public class RecentCallsAdapter extends RecyclerView.Adapter<RecentCallsAdapter.
     private final CallsListener callsListener = new CallsListener();
     private final Context context;
     private final List<User> userList;
-    private final Map<String, Call> callList;
+    private final Map<String, Call> callMap;
 
     private final List<User> selectedUsers;
     private Dialog profileDG;
@@ -45,12 +46,8 @@ public class RecentCallsAdapter extends RecyclerView.Adapter<RecentCallsAdapter.
     public RecentCallsAdapter(Context context, List<User> userList, Map<String, Call> callMap) {
         this.context = context;
         this.userList = userList;
-        this.callList = callMap;
+        this.callMap = callMap;
         selectedUsers = new ArrayList<>();
-    }
-
-    public List<User> getSelectedUsers() {
-        return selectedUsers;
     }
 
     @NonNull
@@ -67,9 +64,9 @@ public class RecentCallsAdapter extends RecyclerView.Adapter<RecentCallsAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull CallViewHolder holder, int position) {
-        String keyMessage = (String) callList.keySet().toArray()[position];
+        String keyMessage = (String) callMap.keySet().toArray()[position];
         holder.setIsRecyclable(false);
-        holder.bind(userList.get(position), callList.get(keyMessage));
+        holder.bind(userList.get(position), callMap.get(keyMessage));
         profileDG = new Dialog(context, R.style.ThemeDialog);
     }
 
@@ -108,7 +105,7 @@ public class RecentCallsAdapter extends RecyclerView.Adapter<RecentCallsAdapter.
         });
 
         profileDG.findViewById(R.id.callLY).setOnClickListener(v -> callsListener.initiateCall(user, context));
-        profileDG.findViewById(R.id.videocallLY).setOnClickListener(v -> callsListener.initiateVideocall(user, context));
+        profileDG.findViewById(R.id.videocallLY).setOnClickListener(v -> callsListener.initiateVideoCall(user, context));
 
         profileDG.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         profileDG.show();
@@ -116,17 +113,18 @@ public class RecentCallsAdapter extends RecyclerView.Adapter<RecentCallsAdapter.
 
     @Override
     public int getItemCount() {
-        return callList.size();
+        return callMap.size();
     }
 
     class CallViewHolder extends RecyclerView.ViewHolder {
         TextView defaultProfileTV, usernameTV, dateTV;
         ImageView profileIV,
                 callIV, videoCallIV,
-                selectedUserIV,
+                selectedUserIV, groupIV,
                 missedCallIV, missedVideoCallIV,
                 outgoingCallIV, incomingCallIV,
                 onlineIV, offlineIV;
+        CardView statusCV;
         ConstraintLayout itemCallLY;
 
         public CallViewHolder(@NonNull View itemView) {
@@ -143,65 +141,80 @@ public class RecentCallsAdapter extends RecyclerView.Adapter<RecentCallsAdapter.
             outgoingCallIV = itemView.findViewById(R.id.outgoingCallIV);
             incomingCallIV = itemView.findViewById(R.id.incomingCallIV);
             selectedUserIV = itemView.findViewById(R.id.selectedUserIV);
+            groupIV = itemView.findViewById(R.id.groupIV);
             itemCallLY = itemView.findViewById(R.id.itemCallLY);
+            statusCV = itemView.findViewById(R.id.statusCV);
             onlineIV = itemView.findViewById(R.id.onlineIV);
             offlineIV = itemView.findViewById(R.id.offlineIV);
         }
 
         void bind(User user, Call call) {
-            if (user.getImageURL().equals(Constants.KEY_IMAGE_URL_DEFAULT)) {
-                defaultProfileTV.setText(user.getUserName().substring(0, 1));
-                defaultProfileTV.setVisibility(View.VISIBLE);
+            if (call.getReceiverID().contains("\n")) {
+                groupIV.setVisibility(View.VISIBLE);
+                statusCV.setVisibility(View.GONE);
+
+                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy, HH:mm", Locale.getDefault());
+                dateTV.setText(dateFormat.format(call.getTimestamp()));
+
+                usernameTV.setText(user.getUserName().replace("\n", ", "));
+                usernameTV.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+                usernameTV.setMarqueeRepeatLimit(-1);
+                usernameTV.setSelected(true);
             } else {
-                profileIV.setVisibility(View.VISIBLE);
-                Glide.with(context)
-                        .load(user.getImageURL())
-                        .circleCrop()
-                        .into(profileIV);
-            }
-
-            if (user.getLastSeen().equals(Constants.KEY_LAST_SEEN_ONLINE)) {
-                onlineIV.setVisibility(View.VISIBLE);
-                offlineIV.setVisibility(View.GONE);
-            } else {
-                onlineIV.setVisibility(View.GONE);
-                offlineIV.setVisibility(View.VISIBLE);
-            }
-
-            defaultProfileTV.setText(user.getUserName().substring(0,1));
-            usernameTV.setText(user.getUserName());
-
-            callIV.setOnClickListener(v -> callsListener.initiateCall(user, context));
-            videoCallIV.setOnClickListener(v -> callsListener.initiateVideocall(user, context));
-
-            profileIV.setOnClickListener(v -> showProfileCard(user));
-            defaultProfileTV.setOnClickListener(v -> showProfileCard(user));
-
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy, HH:mm", Locale.getDefault());
-            dateTV.setText(dateFormat.format(Long.valueOf(call.getDate())));
-
-            if (call.getCallType().equals(INTENT_CALL_TYPE_AUDIO)) {
-                callIV.setVisibility(View.VISIBLE);
-            } else {
-                videoCallIV.setVisibility(View.VISIBLE);
-            }
-
-            if (call.getCallerID().equals(CURRENT_USER.getId())) { //Outgoing call
-                outgoingCallIV.setVisibility(View.VISIBLE);
-                if (call.isMissed()) {
-                    outgoingCallIV.setColorFilter(context.getResources().getColor(android.R.color.holo_red_light));
+                if (user.getImageURL().equals(Constants.KEY_IMAGE_URL_DEFAULT)) {
+                    defaultProfileTV.setText(user.getUserName().substring(0, 1));
+                    defaultProfileTV.setVisibility(View.VISIBLE);
                 } else {
-                    outgoingCallIV.setColorFilter(context.getResources().getColor(android.R.color.holo_green_light));
+                    profileIV.setVisibility(View.VISIBLE);
+                    Glide.with(context)
+                            .load(user.getImageURL())
+                            .circleCrop()
+                            .into(profileIV);
                 }
-            } else if (call.getReceiverID().equals(CURRENT_USER.getId())) { //Incoming call
-                if (call.isMissed()) {
-                    if (call.getCallType().equals(INTENT_CALL_TYPE_VIDEO)) {
-                        missedVideoCallIV.setVisibility(View.VISIBLE);
-                    } else {
-                        missedCallIV.setVisibility(View.VISIBLE);
-                    }
+
+                if (user.getLastSeen().equals(Constants.KEY_LAST_SEEN_ONLINE)) {
+                    onlineIV.setVisibility(View.VISIBLE);
+                    offlineIV.setVisibility(View.GONE);
                 } else {
-                    incomingCallIV.setVisibility(View.VISIBLE);
+                    onlineIV.setVisibility(View.GONE);
+                    offlineIV.setVisibility(View.VISIBLE);
+                }
+
+                defaultProfileTV.setText(user.getUserName().substring(0, 1));
+                usernameTV.setText(user.getUserName());
+
+                callIV.setOnClickListener(v -> callsListener.initiateCall(user, context));
+                videoCallIV.setOnClickListener(v -> callsListener.initiateVideoCall(user, context));
+
+                profileIV.setOnClickListener(v -> showProfileCard(user));
+                defaultProfileTV.setOnClickListener(v -> showProfileCard(user));
+
+                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy, HH:mm", Locale.getDefault());
+                dateTV.setText(dateFormat.format(call.getTimestamp()));
+
+                if (call.getCallType().equals(INTENT_CALL_TYPE_AUDIO)) {
+                    callIV.setVisibility(View.VISIBLE);
+                } else {
+                    videoCallIV.setVisibility(View.VISIBLE);
+                }
+
+                if (call.getCallerID().equals(FIREBASE_USER.getUid())) { //Outgoing call
+                    outgoingCallIV.setVisibility(View.VISIBLE);
+                    if (call.getMissed()) {
+                        outgoingCallIV.setColorFilter(context.getResources().getColor(android.R.color.holo_red_light));
+                    } else {
+                        outgoingCallIV.setColorFilter(context.getResources().getColor(android.R.color.holo_green_light));
+                    }
+                } else { //Incoming call
+                    if (call.getMissed()) {
+                        if (call.getCallType().equals(INTENT_CALL_TYPE_VIDEO)) {
+                            missedVideoCallIV.setVisibility(View.VISIBLE);
+                        } else {
+                            missedCallIV.setVisibility(View.VISIBLE);
+                        }
+                    } else {
+                        incomingCallIV.setVisibility(View.VISIBLE);
+                    }
                 }
             }
         }

@@ -12,7 +12,6 @@ import android.widget.TextView;
 
 import com.example.videomeeting.R;
 import com.example.videomeeting.adapters.recyclerviews.UsersListChatsAdapter;
-import com.example.videomeeting.models.Contact;
 import com.example.videomeeting.models.User;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -23,11 +22,11 @@ import com.trendyol.bubblescrollbarlib.BubbleScrollBar;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static com.example.videomeeting.utils.Constants.CURRENT_USER;
-import static com.example.videomeeting.utils.Constants.KEY_COLLECTION_CONTACTED_USER;
-import static com.example.videomeeting.utils.Constants.KEY_COLLECTION_USER;
+import static com.example.videomeeting.utils.Constants.KEY_COLLECTION_USERS;
 
 public class UsersListChatsActivity extends AppCompatActivity {
 
@@ -43,58 +42,47 @@ public class UsersListChatsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_users_list);
 
         setTitle(getString(R.string.my_contacts));
-        Objects.requireNonNull(UsersListChatsActivity.this.getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+        UsersListChatsActivity.this.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         errorMessageTV = findViewById(R.id.errorMessageTV);
         noContactsCV = findViewById(R.id.noContactsCV);
-        BubbleScrollBar scrollBar = findViewById(R.id.scrollbar);
+        setupRV();
+        getContacts();
+    }
 
+    private void setupRV() {
         usersList = new ArrayList<>();
         usersListChatsAdapter = new UsersListChatsAdapter(UsersListChatsActivity.this, usersList);
         allUsersRV = findViewById(R.id.allUsersRV);
         allUsersRV.setLayoutManager(new LinearLayoutManager(UsersListChatsActivity.this));
         allUsersRV.setAdapter(usersListChatsAdapter);
+        BubbleScrollBar scrollBar = findViewById(R.id.scrollbar);
         scrollBar.attachToRecyclerView(allUsersRV);
         scrollBar.setBubbleTextProvider(i -> usersListChatsAdapter.userList.get(i).getUserName()); //dunno
-
-        getContacts();
     }
 
     private void getContacts() {
-        FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_CONTACTED_USER)
-                .child(CURRENT_USER.getId())
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        if (snapshot.getValue() == null) {
-                            noContactsCV.setVisibility(View.VISIBLE);
-                        } else {
-                            usersList.clear();
-                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                                if (dataSnapshot.getValue(Contact.class).isContact()) {
-                                    fillUserList(dataSnapshot);
-                                } else {
-                                    checkUserList();
-                                }
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        errorMessageTV.setText(String.format("%s", getString(R.string.no_users_available)));
-                        changeViewsVisibility(View.GONE, View.VISIBLE, View.GONE);
-                    }
-                });
+        if (CURRENT_USER.getContacts() != null) {
+            usersList.clear();
+            for (Map.Entry<String, Boolean> contactedUser : CURRENT_USER.getContacts().entrySet()) {
+                if (contactedUser.getValue()) {
+                    getContactData(contactedUser.getKey());
+                }
+            }
+        } else {
+            changeViewsVisibility(View.GONE, View.GONE, View.VISIBLE);
+        }
     }
 
-    private void fillUserList(DataSnapshot dataSnapshot) {
-        FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_USER)
-                .child(dataSnapshot.getKey()) //userID
+    private void getContactData(String userID) {
+        FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_USERS)
+                .child(userID)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        usersList.add(snapshot.getValue(User.class));
+                        User user = snapshot.getValue(User.class);
+                        user.setId(snapshot.getKey());
+                        usersList.add(user);
                         checkUserList();
                     }
 
@@ -108,7 +96,7 @@ public class UsersListChatsActivity extends AppCompatActivity {
 
     private void checkUserList() {
         if (usersList.size() > 0) {
-            sortUsersAlphab();
+            sortListAlphab();
             usersListChatsAdapter.notifyDataSetChanged();
             changeViewsVisibility(View.VISIBLE, View.GONE, View.GONE);
         } else {
@@ -116,7 +104,7 @@ public class UsersListChatsActivity extends AppCompatActivity {
         }
     }
 
-    private void sortUsersAlphab() {
+    private void sortListAlphab() {
         Collections.sort(usersList, (user, u1) -> {
             String s1 = user.getUserName();
             String s2 = u1.getUserName();

@@ -12,13 +12,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.videomeeting.R;
 import com.example.videomeeting.models.Message;
-import com.example.videomeeting.utils.Constants;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+
+import static com.example.videomeeting.utils.Constants.FIREBASE_USER;
 
 public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
@@ -75,8 +76,11 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     @Override
     public int getItemCount() {
-        if (messageList != null) return messageList.size();
-        else return 0;
+        if (messageList != null) {
+            return messageList.size();
+        } else {
+            return 0;
+        }
     }
 
     @Override
@@ -84,14 +88,14 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         Message message = messageList.get(position);
 
         SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-        Date currentDay =  new Date(Long.parseLong(message.getTimestamp()));
+        Date currentDay =  new Date(message.getTimestamp());
         Date previousDay;
 
         isDateNeeded = false;
         if (position - 1 >= 0) {
-            previousDay = new Date(Long.parseLong(messageList.get(position - 1).getTimestamp()));
+            previousDay = new Date(messageList.get(position - 1).getTimestamp());
             if (!formatter.format(currentDay).equals(formatter.format(previousDay))) { //if currentDate comes a day(s) after previousDate
-                if (message.getSenderID().equals(Constants.CURRENT_USER.getId())) {
+                if (message.getSenderID().equals(FIREBASE_USER.getUid())) {
                     isDateNeeded = true;
                     return ITEM_MSG_SENT;
                 } else { //if currentDate comes after previousDate
@@ -99,7 +103,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     return ITEM_MSG_RECEIVED;
                 }
             } else {
-                if (message.getSenderID().equals(Constants.CURRENT_USER.getId())) {
+                if (message.getSenderID().equals(FIREBASE_USER.getUid())) {
                     isDateNeeded = false;
                     return ITEM_MSG_SENT;
                 }
@@ -109,7 +113,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 }
             }
         } else if (position  == 0) {
-            if (message.getSenderID().equals(Constants.CURRENT_USER.getId())) {
+            if (message.getSenderID().equals(FIREBASE_USER.getUid())) {
                 isDateNeeded = true;
                 return ITEM_MSG_SENT;
             } else { //if currentDate comes after previousDate
@@ -118,15 +122,18 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             }
         }
 
-        if (message.getSenderID().equals(Constants.CURRENT_USER.getId())) return ITEM_MSG_SENT;
-        else return ITEM_MSG_RECEIVED;
+        if (message.getSenderID().equals(FIREBASE_USER.getUid())) {
+            return ITEM_MSG_SENT;
+        } else {
+            return ITEM_MSG_RECEIVED;
+        }
         /*else if (!chat.getSenderID().equals(Constants.CURRENT_USER.getId())
             && some other condition)
             return ITEM_MSG_RECEIVED_GROUP;*/
     }
 
     ////////////////////////////////////////////////////////////////
-    static class MessageSentHolder extends RecyclerView.ViewHolder {
+    class MessageSentHolder extends RecyclerView.ViewHolder {
         TextView messageTV;
         TextView timeTV, dateTV;
         ImageView seenIV, notSeenIV;
@@ -145,23 +152,24 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         void bind(Message message, boolean isDateNeeded) {
             messageTV.setText(message.getMessage());
-            if (message.isSeen()) seenIV.setVisibility(View.VISIBLE);
-            else notSeenIV.setVisibility(View.VISIBLE);
+            if (message.getSeen()) {
+                seenIV.setVisibility(View.VISIBLE);
+            } else {
+                notSeenIV.setVisibility(View.VISIBLE);
+            }
 
             timeTV.setText(
                     DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault())
-                            .format(Long.valueOf(message.getTimestamp()))
+                            .format(message.getTimestamp())
             );
 
             if (isDateNeeded) {
-                dateCV.setVisibility(View.VISIBLE);
-                SimpleDateFormat formatter = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
-                dateTV.setText(formatter.format(Long.valueOf(message.getTimestamp())));
+                formatDate(dateCV, dateTV, message);
             }
         }
     }
 
-    static class MessageReceivedHolder extends RecyclerView.ViewHolder {
+    class MessageReceivedHolder extends RecyclerView.ViewHolder {
         TextView messageTV;
         TextView timeTV, dateTV;
         CardView dateCV;
@@ -179,14 +187,18 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             messageTV.setText(message.getMessage());
             timeTV.setText(
                     DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault())
-                            .format(Long.valueOf(message.getTimestamp()))
+                            .format(message.getTimestamp())
             );
             if (isDateNeeded) {
-                dateCV.setVisibility(View.VISIBLE);
-                SimpleDateFormat formatter = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
-                dateTV.setText(formatter.format(Long.valueOf(message.getTimestamp())));
+                formatDate(dateCV, dateTV, message);
             }
         }
+    }
+
+    private void formatDate(CardView dateCV, TextView dateTV, Message message) {
+        dateCV.setVisibility(View.VISIBLE);
+        SimpleDateFormat formatter = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
+        dateTV.setText(formatter.format(message.getTimestamp()));
     }
 
     /*

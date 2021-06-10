@@ -19,7 +19,7 @@
     <string name="outgoing_call">拨出电话</string>
     <string name="incoming_videocall">来电视频通话</string>
     <string name="outgoing_videocall">传出视讯通话</string>
-    <string name="battery_optimization_enabled">电池优化已启用。 它可以中断在后台运行的服务</string>
+    <string name="battery_optimization_enabled">电池优化已启用。 请禁用它，以避免在后台运行的服务中断</string>
     <string name="warning">警告</string>
     <string name="dont_ask_again">不要再问了</string>
     <string name="disable">禁用</string>
@@ -110,16 +110,16 @@
     <string name="info_notifications">请注意，私人聊天的首选项在Android 8.0或更高版本上不起作用。 单击此处转到系统的应用程序通知设置。</string>
     <string name="messages">信息</string>
     <string name="users">用户</string>
-    <string name="welcoming_message_chat"><b>欢迎使用Wen</b>\n\n通过单击右上角的搜索按钮或单击浮动按钮以与您的联系人列表中的某人聊天来搜索用户，从而开始发送消息。</string>
-    <string name="welcoming_message_call"><b>欢迎使用Wen</b>\n\n通过点击右上角的搜索按钮来搜索用户，或者通过点击浮动按钮以从联系人列表中呼叫某人，从而开始呼叫。</string>
+    <string name="welcoming_message_chat"><b>欢迎使用Wen</b>\n\n通过搜索用户或与您的联系人列表中的某人开始消息传递。</string>
+    <string name="welcoming_message_call"><b>欢迎使用Wen</b>\n\n通过搜索用户或与您的联系人列表中的某人开始通话。</string>
     <string name="group_disabled_tip">按住不放即可选择您要呼叫的用户</string>
     <string name="add_contact">增加联系人</string>
     <string name="delete_contact">删除联络人</string>
     <string name="username_too_short">用户名必须至少包含4个字符</string>
     <string name="no_contacts">您还没有任何联系。 您可以使用主页的搜索项找到用户！</string>
     <string name="phone_and_warning">电话（只有您可以看到该号码）</string>
-    <string name="no_messages_yet">这里还没有消息……给他打招呼！</string>
+    <string name="no_messages_yet">这里还没有消息……\n给他打招呼！</string>
     <string name="search_a_message">通过在上方的栏中输入文本来搜索消息</string>
-    <string name="search_a_user">通过在顶部栏中输入文本来搜索用户</string>
+    <string name="search_a_user">通过在上方的栏中输入文本来搜索用户名。 输入4个或更多字符后，我们将对其进行处理。</string>
     <string name="chats">聊天</string>
 </resources>

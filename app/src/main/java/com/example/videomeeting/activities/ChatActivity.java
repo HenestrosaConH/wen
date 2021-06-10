@@ -3,6 +3,7 @@ package com.example.videomeeting.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -11,6 +12,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.appcompat.widget.Toolbar;
@@ -24,9 +26,10 @@ import com.example.videomeeting.adapters.recyclerviews.MessagesAdapter;
 import com.example.videomeeting.apis.ApiClient;
 import com.example.videomeeting.apis.ApiService;
 import com.example.videomeeting.listeners.CallsListener;
-import com.example.videomeeting.models.Contact;
 import com.example.videomeeting.models.Message;
+import com.example.videomeeting.models.RecentChat;
 import com.example.videomeeting.models.User;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -44,6 +47,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import hani.momanii.supernova_emoji_library.Actions.EmojIconActions;
 import hani.momanii.supernova_emoji_library.Helper.EmojiconEditText;
@@ -53,16 +57,17 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import static com.example.videomeeting.utils.Constants.CURRENT_USER;
+import static com.example.videomeeting.utils.Constants.FIREBASE_USER;
 import static com.example.videomeeting.utils.Constants.INTENT_USER;
-import static com.example.videomeeting.utils.Constants.KEY_COLLECTION_CONTACTED_USER;
-import static com.example.videomeeting.utils.Constants.KEY_COLLECTION_MESSAGE;
-import static com.example.videomeeting.utils.Constants.KEY_COLLECTION_USER;
+import static com.example.videomeeting.utils.Constants.KEY_COLLECTION_MESSAGES;
+import static com.example.videomeeting.utils.Constants.KEY_COLLECTION_RECENT_CHATS;
+import static com.example.videomeeting.utils.Constants.KEY_COLLECTION_USERS;
+import static com.example.videomeeting.utils.Constants.KEY_CONTACTED_USERS;
 import static com.example.videomeeting.utils.Constants.KEY_IMAGE_URL;
 import static com.example.videomeeting.utils.Constants.KEY_IMAGE_URL_DEFAULT;
-import static com.example.videomeeting.utils.Constants.KEY_IS_CONTACT;
 import static com.example.videomeeting.utils.Constants.KEY_LAST_SEEN_CONTACTS;
 import static com.example.videomeeting.utils.Constants.KEY_LAST_SEEN_ONLINE;
-import static com.example.videomeeting.utils.Constants.KEY_LAST_SEEN_TRUE;
+import static com.example.videomeeting.utils.Constants.KEY_LAST_SEEN_ALL;
 import static com.example.videomeeting.utils.Constants.KEY_SEEN;
 import static com.example.videomeeting.utils.Constants.KEY_USER_ID;
 import static com.example.videomeeting.utils.Constants.NOTIFICATION_BODY;
@@ -73,25 +78,30 @@ import static com.example.videomeeting.utils.Constants.REMOTE_MSG_DATA;
 public class ChatActivity extends AppCompatActivity {
 
     //Firebase
-    /*private final DatabaseReference myContactedUsersRef = FirebaseDatabase.getInstance()
-                .getReference(KEY_COLLECTION_CONTACTED_USER)
-                .child(CURRENT_USER.getId());*/
-    private final DatabaseReference chatsReference = FirebaseDatabase.getInstance()
-                .getReference(KEY_COLLECTION_MESSAGE);
+    private final DatabaseReference contactsRef = FirebaseDatabase.getInstance()
+            .getReference(KEY_COLLECTION_USERS)
+            .child(FIREBASE_USER.getUid())
+            .child(KEY_CONTACTED_USERS);
+    private final DatabaseReference messagesRef = FirebaseDatabase.getInstance()
+            .getReference(KEY_COLLECTION_MESSAGES);
+    private final DatabaseReference recentChatsRef = FirebaseDatabase.getInstance()
+            .getReference(KEY_COLLECTION_RECENT_CHATS);
     private final CallsListener callsListener = new CallsListener();
-    //Models
+    private String chatRoomKey;
+    private ChildEventListener messagesListener, statusMessageListener;
+    private ValueEventListener statusUserListener;
+
     private List<Message> messageList;
     private User remoteUser;
-    private boolean checkContactedUserAgain = true;
     private boolean isContact = false;
     private boolean shouldShareLastSeen = false;
-    //Components
+    private boolean shouldCheckKey = true;
+
     private TextView lastSeenTV;
     private MessagesAdapter messagesAdapter;
     private MenuItem contactIT;
     private CardView noMessagesCV;
     private RecyclerView messagesRV;
-    private ValueEventListener statusMessageEvent, statusUserEvent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,37 +116,23 @@ public class ChatActivity extends AppCompatActivity {
         setupBottomLayout();
         setupRV();
 
-        getMessages();
-        checkMessageStatus();
+        chatRoomKey = FIREBASE_USER.getUid() + "-" + remoteUser.getId();
+        getMessages(chatRoomKey);
         checkUserStatus();
     }
 
     private void setupLastSeen() {
         lastSeenTV = findViewById(R.id.lastSeenTV);
-        if (remoteUser.isLastSeenEnabled().equals(KEY_LAST_SEEN_TRUE)) {
+        if (remoteUser.getLastSeenStatus().equals(KEY_LAST_SEEN_ALL)) {
             formatLastSeen(remoteUser.getLastSeen());
             shouldShareLastSeen = true;
-        } else if (remoteUser.isLastSeenEnabled().equals(KEY_LAST_SEEN_CONTACTS)) {
-            FirebaseDatabase.getInstance()
-                    .getReference(KEY_COLLECTION_CONTACTED_USER)
-                    .child(remoteUser.getId())
-                    .addValueEventListener(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                                if (dataSnapshot == null
-                                        || dataSnapshot.getKey().equals(CURRENT_USER.getId())
-                                        && dataSnapshot.getValue(Contact.class).isContact()) {
-                                    shouldShareLastSeen = true;
-                                    break;
-                                }
-                            }
-                            //checkUserStatus();
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) { }
-                    });
+        } else if (remoteUser.getLastSeenStatus().equals(KEY_LAST_SEEN_CONTACTS)) {
+            for (Map.Entry<String, Boolean> contactedUser : remoteUser.getContacts().entrySet()) {
+                if (contactedUser.getKey().equals(FIREBASE_USER.getUid()) && contactedUser.getValue()) {
+                    shouldShareLastSeen = true;
+                    break;
+                }
+            }
         }
     }
 
@@ -175,6 +171,7 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void setupRV() {
+        messageList = new ArrayList<>();
         messagesRV = findViewById(R.id.messagesRV);
         messagesRV.setHasFixedSize(true);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(ChatActivity.this);
@@ -188,24 +185,30 @@ public class ChatActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.menu_chat, menu);
         MenuBuilder m = (MenuBuilder) menu;
         contactIT = menu.findItem(R.id.contactIT);
-        myContactedUsersRef.child(remoteUser.getId())
-                .child(KEY_IS_CONTACT)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        if (snapshot.getValue() != null && (boolean) snapshot.getValue()) {
-                            contactIT.setTitle(R.string.delete_contact);
-                            contactIT.setIcon(R.drawable.ic_contact_delete);
-                            isContact = true;
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {}
-                });
+        if (CURRENT_USER.getContacts() != null) {
+            for (Map.Entry<String, Boolean> contactedUser : CURRENT_USER.getContacts().entrySet()) {
+                if (contactedUser.getKey().equals(remoteUser.getId()) && contactedUser.getValue()) {
+                    setContactIT(true);
+                }
+            }
+        } else {
+            setContactIT(false);
+        }
         //noinspection RestrictedApi
         m.setOptionalIconsVisible(true);
         return true;
+    }
+
+    private void setContactIT(boolean isRemoveEnabled) {
+        if (isRemoveEnabled) {
+            contactIT.setTitle(R.string.delete_contact);
+            contactIT.setIcon(R.drawable.ic_contact_delete);
+            isContact = true;
+        } else {
+            contactIT.setTitle(R.string.add_contact);
+            contactIT.setIcon(R.drawable.ic_contact_add);
+            isContact = false;
+        }
     }
 
     @Override
@@ -214,23 +217,16 @@ public class ChatActivity extends AppCompatActivity {
             callsListener.initiateCall(remoteUser, ChatActivity.this);
             return true;
         } else if (item.getItemId() == R.id.videocallIT) {
-            callsListener.initiateVideocall(remoteUser, ChatActivity.this);
+            callsListener.initiateVideoCall(remoteUser, ChatActivity.this);
             return true;
         } else if (item.getItemId() == R.id.contactIT) {
             isContact = !isContact;
-            myContactedUsersRef
-                    .child(remoteUser.getId())
-                    .child(KEY_IS_CONTACT)
-                    .setValue(isContact);
             if (isContact) {
-                contactIT.setTitle(R.string.delete_contact);
-                contactIT.setIcon(R.drawable.ic_contact_delete);
-                isContact = true;
+                addUserToContacts();
             } else {
-                contactIT.setTitle(R.string.add_contact);
-                contactIT.setIcon(R.drawable.ic_contact_add);
-                isContact = false;
+                removeUserFromContacts();
             }
+            setContactIT(isContact);
             return true;
         }
         return false;
@@ -257,46 +253,159 @@ public class ChatActivity extends AppCompatActivity {
         return sdf;
     }
 
-    private void sendMessage(String messageText) {
-        String date = String.valueOf(System.currentTimeMillis());
-        Message message = new Message(
-            CURRENT_USER.getId(),
-            remoteUser.getId(),
-            messageText,
-            date,
-            false
-        );
+    private void getMessages(String chatRoomKey) {
+        if (shouldCheckKey) {
+            messagesRef.child(chatRoomKey).addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.getChildrenCount() == 0) {
+                        ChatActivity.this.chatRoomKey = remoteUser.getId() + "-" + FIREBASE_USER.getUid();
+                        getMessages(ChatActivity.this.chatRoomKey);
+                        shouldCheckKey = false;
+                    }
+                }
 
-        int randomId = (int) (Math.random() * 1000);
-        String id = date + "-" + randomId;
-        chatsReference.child(id)
-                .setValue(message);
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
 
-        setNotificationData(message);
-
-        if (checkContactedUserAgain) {
-            addUserToRecentChats();
+                }
+            });
         }
-    }
 
-    private void addUserToRecentChats() {
-        //If we haven't talked with the user before, we add him to our recent chats
-        myContactedUsersRef.child(remoteUser.getId())
-                .addListenerForSingleValueEvent(new ValueEventListener() {
+        messagesRV.setVisibility(View.GONE);
+        noMessagesCV.setVisibility(View.VISIBLE);
+        messagesListener = messagesRef.child(chatRoomKey)
+                .addChildEventListener(new ChildEventListener() {
                     @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        if (!snapshot.exists()) {
-                            myContactedUsersRef
-                                    .child(remoteUser.getId())
-                                    .child(KEY_IS_CONTACT)
-                                    .setValue(false);
+                    public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                        Message message = snapshot.getValue(Message.class);
+                        message.setTimestamp(Long.parseLong(snapshot.getKey()));
+                        if (!message.getSenderID().equals(FIREBASE_USER.getUid()) && !message.getSeen()) {
+                            message.setSeen(true);
+                            Log.e("getSenderID", message.getSenderID()+"");
+                            Log.e("messageText", message.getMessage()+"");
+                            Log.e("seen", message.getSeen()+"");
+                            recentChatsRef.child(chatRoomKey).child(KEY_SEEN).setValue(true);
+                            messagesRef.child(chatRoomKey).child(snapshot.getKey()).child(KEY_SEEN).setValue(true);
                         }
-                        checkContactedUserAgain = false;
+                        messageList.add(message);
+                        /*
+                        if (messageList.size() == snapshot.getChildrenCount()) {
+                            checkMessageStatus(chatRoomKey);
+                        }*/
+                        checkMessageList();
                     }
 
                     @Override
-                    public void onCancelled(@NonNull DatabaseError error) {}
+                    public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                    }
+
+                    @Override
+                    public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+                    }
+
+                    @Override
+                    public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
                 });
+    }
+
+    private void checkMessageList() {
+        messagesAdapter = new MessagesAdapter(messageList);
+        messagesRV.setAdapter(messagesAdapter);
+        messagesRV.setVisibility(View.VISIBLE);
+        noMessagesCV.setVisibility(View.GONE);
+    }
+
+    /*
+    private void getMessages(String chatRoomID) {
+        messagesRef.child(chatRoomID)
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.getValue() == null) {
+                            messagesRV.setVisibility(View.GONE);
+                            noMessagesCV.setVisibility(View.VISIBLE);
+                            getMessages(remoteUser.getId() + "-" + FIREBASE_USER.getUid());
+                        } else {
+                            messageList.clear();
+                            chatRoomKey = snapshot.getKey();
+                            checkMessageStatus(chatRoomKey);
+                            Message message;
+                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                if (dataSnapshot.getValue() != null) {
+                                    message = dataSnapshot.getValue(Message.class);
+                                    message.setTimestamp(Long.parseLong(dataSnapshot.getKey()));
+                                    messageList.add(message);
+                                }
+                            }
+                            if (messageList.size() > 0) {
+                                messagesAdapter = new MessagesAdapter(messageList);
+                                messagesRV.setAdapter(messagesAdapter);
+                                messagesRV.setVisibility(View.VISIBLE);
+                                noMessagesCV.setVisibility(View.GONE);
+                            } else {
+                                messagesRV.setVisibility(View.GONE);
+                                noMessagesCV.setVisibility(View.VISIBLE);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) { }
+                });
+    }*/
+
+    private void sendMessage(String messageText) {
+        Message message = new Message(
+            FIREBASE_USER.getUid(),
+            messageText,
+            false
+        );
+        long timestamp = System.currentTimeMillis();
+        message.setTimestamp(timestamp);
+        if (chatRoomKey == null) {
+            chatRoomKey = FIREBASE_USER.getUid() + "-" + remoteUser.getId();
+        }
+        messagesRef.child(chatRoomKey).child(String.valueOf(timestamp)).setValue(message);
+
+        RecentChat recentChat = new RecentChat(
+            messageText,
+            timestamp,
+            FIREBASE_USER.getUid(),
+            false
+        );
+        recentChatsRef.child(chatRoomKey).setValue(recentChat);
+        setNotificationData(message);
+    }
+
+    private void addUserToContacts() {
+        HashMap<String, Boolean> contactedUserMap = new HashMap<>();
+        if (CURRENT_USER.getContacts() != null) {
+            if (CURRENT_USER.getContacts().get(remoteUser.getId()) == null) {
+                contactedUserMap = CURRENT_USER.getContacts();
+                contactedUserMap.put(remoteUser.getId(), true);
+            }
+        } else {
+            contactedUserMap.put(remoteUser.getId(), true);
+        }
+        CURRENT_USER.setContacts(contactedUserMap);
+        contactsRef.setValue(contactedUserMap);
+    }
+
+    private void removeUserFromContacts() {
+        HashMap<String, Boolean> contactedUserMap = CURRENT_USER.getContacts();
+        contactedUserMap.remove(remoteUser.getId());
+        CURRENT_USER.setContacts(contactedUserMap);
+        contactsRef.setValue(contactedUserMap);
     }
 
     private void setNotificationData(Message message) {
@@ -305,9 +414,9 @@ public class ChatActivity extends AppCompatActivity {
         try {
             JSONObject data = new JSONObject();
             data.put(NOTIFICATION_TITLE, CURRENT_USER.getUserName());
-            data.put(NOTIFICATION_BODY, message);
+            data.put(NOTIFICATION_BODY, message.getMessage());
             data.put(KEY_IMAGE_URL, CURRENT_USER.getImageURL());
-            data.put(KEY_USER_ID, CURRENT_USER.getId());
+            data.put(KEY_USER_ID, FIREBASE_USER.getUid());
 
             if (remoteUser.getFcmToken() != null) {
                 body.put(NOTIFICATION_TO, remoteUser.getFcmToken());
@@ -332,80 +441,59 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 
-    private void getMessages() {
-        messageList = new ArrayList<>();
-        chatsReference.addValueEventListener(new ValueEventListener() {
+    /*
+    private void checkMessageStatus(String chatRoomKey) {
+        statusMessageListener = messagesRef.child(chatRoomKey).addChildEventListener(new ChildEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.getValue() == null) {
-                    messagesRV.setVisibility(View.GONE);
-                    noMessagesCV.setVisibility(View.VISIBLE);
-                } else {
-                    messageList.clear();
-                    Message message;
-                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                        message = dataSnapshot.getValue(Message.class);
-                        assert message != null;
-                        if (message.getReaderID().equals(CURRENT_USER.getId())
-                                && message.getSenderID().equals(remoteUser.getId())
-                                || message.getReaderID().equals(remoteUser.getId())
-                                && message.getSenderID().equals(CURRENT_USER.getId())) {
-                            messageList.add(message);
-                        }
-                    }
-                    if (messageList.size() > 0) {
-                        messagesAdapter = new MessagesAdapter(messageList);
-                        messagesRV.setAdapter(messagesAdapter);
-                        messagesRV.setVisibility(View.VISIBLE);
-                        noMessagesCV.setVisibility(View.GONE);
-                    } else {
-                        messagesRV.setVisibility(View.GONE);
-                        noMessagesCV.setVisibility(View.VISIBLE);
-                    }
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                Message message = snapshot.getValue(Message.class);
+                message.setTimestamp(Long.parseLong(snapshot.getKey()));
+                if (!message.getSenderID().equals(FIREBASE_USER.getUid()) && !message.isSeen()) {
+                    Log.e("getSenderID", message.getSenderID()+"");
+                    Log.e("getTimestamp", message.getTimestamp()+"");
+                    Log.e("FIREBASE_USER", FIREBASE_USER.getUid()+"");
+                    HashMap<String, Object> hashMap = new HashMap<>();
+                    hashMap.put(KEY_SEEN, true);
+                    //snapshot.getRef().updateChildren(hashMap);
+                    //recentChatsRef.child(chatRoomKey).updateChildren(hashMap);
                 }
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) { }
         });
-    }
-
-    private void checkMessageStatus() {
-        statusMessageEvent = chatsReference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.getValue() != null) {
-                    Message message;
-                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                        message = dataSnapshot.getValue(Message.class);
-                        if (message.getReaderID().equals(CURRENT_USER.getId())
-                                && message.getSenderID().equals(remoteUser.getId())) {
-                            HashMap<String, Object> hashMap = new HashMap<>();
-                            hashMap.put(KEY_SEEN, true);
-                            dataSnapshot.getRef().updateChildren(hashMap);
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
-        });
-    }
+    }*/
 
     private void checkUserStatus() {
-        statusUserEvent = FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_USER)
+        statusUserListener = FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_USERS)
                 .child(remoteUser.getId())
                 .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        remoteUser = snapshot.getValue(User.class);
-                        assert remoteUser != null;
-                        if (shouldShareLastSeen || remoteUser.getLastSeen().equals(KEY_LAST_SEEN_ONLINE)) {
-                            formatLastSeen(remoteUser.getLastSeen());
-                            lastSeenTV.setVisibility(View.VISIBLE);
-                        } else {
-                            lastSeenTV.setVisibility(View.GONE);
+                        if (snapshot.getValue() != null) {
+                            remoteUser = snapshot.getValue(User.class);
+                            remoteUser.setId(snapshot.getKey());
+                            if (shouldShareLastSeen || remoteUser.getLastSeen().equals(KEY_LAST_SEEN_ONLINE)) {
+                                formatLastSeen(remoteUser.getLastSeen());
+                                lastSeenTV.setVisibility(View.VISIBLE);
+                            } else {
+                                lastSeenTV.setVisibility(View.GONE);
+                            }
                         }
                     }
 
@@ -476,12 +564,19 @@ public class ChatActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        if (statusMessageEvent != null) {
-            chatsReference.removeEventListener(statusMessageEvent);
+        if (messagesRef != null) {
+            messagesRef.removeEventListener(statusUserListener);
+            messagesRef.removeEventListener(messagesListener);
+            messagesListener = null;
+            statusUserListener = null;
         }
-        if (statusUserEvent != null) {
-            chatsReference.removeEventListener(statusUserEvent);
-        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+        startActivity(intent);
     }
 
     //For notifications purposes

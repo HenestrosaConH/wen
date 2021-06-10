@@ -18,7 +18,7 @@ import android.widget.TextView;
 import com.example.videomeeting.R;
 import com.example.videomeeting.activities.UsersListChatsActivity;
 import com.example.videomeeting.adapters.recyclerviews.RecentChatsAdapter;
-import com.example.videomeeting.models.Message;
+import com.example.videomeeting.models.RecentChat;
 import com.example.videomeeting.models.User;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -26,22 +26,23 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static com.example.videomeeting.utils.Constants.*;
 
 public class RecentChatsFragment extends Fragment {
 
-    private final DatabaseReference chatReference = FirebaseDatabase.getInstance()
-                .getReference(KEY_COLLECTION_MESSAGE);
+    private final DatabaseReference recentChatsRef = FirebaseDatabase.getInstance()
+                .getReference(KEY_COLLECTION_RECENT_CHATS);
     private ValueEventListener incomingMessagesListener;
 
-    private Map<String, User> userMap;
-    private Map<String, Message> messageMap;
+    //private Map<String, RecentChat> recentChatMap;
+    private List<RecentChat> recentChatList;
+    private List<User> remoteUserList;
 
     private RecyclerView recentChatsRV;
-    private RecentChatsAdapter recentChatsAdapter;
     private TextView errorMessageTV;
     private CardView welcomingCV;
 
@@ -52,91 +53,105 @@ public class RecentChatsFragment extends Fragment {
         errorMessageTV = view.findViewById(R.id.errorMessageTV);
         welcomingCV = view.findViewById(R.id.welcomingCV);
         setupRV(view);
-
-        view.findViewById(R.id.usersListFB).setOnClickListener(v -> {
-            Intent intent = new Intent(getContext(), UsersListChatsActivity.class);
-            startActivity(intent);
-        });
-
+        setupFab(view);
         getRecentChats();
         return view;
     }
 
     private void setupRV(View view) {
-        userMap = new LinkedHashMap<>();
-        messageMap = new LinkedHashMap<>();
-        recentChatsAdapter = new RecentChatsAdapter(getContext(), userMap, messageMap);
+        recentChatList = new ArrayList<>();
+        remoteUserList = new ArrayList<>();
+        //recentChatsAdapter = new RecentChatsAdapter(getContext(), recentChatList, remoteUser);
         recentChatsRV = view.findViewById(R.id.recentChatsRV);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         linearLayoutManager.setReverseLayout(true);
         linearLayoutManager.setStackFromEnd(true);
         recentChatsRV.setLayoutManager(linearLayoutManager);
-        recentChatsRV.setAdapter(recentChatsAdapter);
+        //recentChatsRV.setAdapter(recentChatsAdapter);
+    }
+
+    private void setupFab(View view) {
+        view.findViewById(R.id.usersListFB).setOnClickListener(v -> {
+            Intent intent = new Intent(getContext(), UsersListChatsActivity.class);
+            startActivity(intent);
+        });
     }
 
     private void getRecentChats() {
-        incomingMessagesListener = chatReference.addValueEventListener(new ValueEventListener() {
+        changeViewsVisibility(View.GONE, View.GONE, View.VISIBLE);
+        incomingMessagesListener = recentChatsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.getValue() == null) {
-                    changeViewsVisibility(View.GONE, View.GONE, View.VISIBLE);
-                } else {
-                    userMap.clear();
-                    messageMap.clear();
-                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                        getUserFromChat(dataSnapshot.getValue(Message.class));
+                final int[] i = {0};
+                recentChatList.clear();
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    Log.e("getRecentChats", dataSnapshot.getKey()+"");
+                    String[] usersID = dataSnapshot.getKey().split("-");
+                    if (FIREBASE_USER.getUid().equals(usersID[0]) || FIREBASE_USER.getUid().equals(usersID[1])) {
+                        RecentChat recentChat = dataSnapshot.getValue(RecentChat.class);
+                        if (FIREBASE_USER.getUid().equals(usersID[0])) {
+                            recentChat.setRemoteUserID(usersID[1]);
+                        } else {
+                            recentChat.setRemoteUserID(usersID[0]);
+                        }
+                        recentChatList.add(recentChat);
+                    }
+                    if (++i[0] == snapshot.getChildrenCount()) {
+                        checkChatList();
                     }
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                errorMessageTV.setText(error.getMessage());
+                errorMessageTV.setText(String.format("%s", getString(R.string.no_users_available)));
                 changeViewsVisibility(View.GONE, View.VISIBLE, View.GONE);
             }
         });
     }
 
-    private void getUserFromChat(Message message) {
-        if (message.getReaderID().equals(FIREBASE_USER.getUid())) {
-            fillLists(message.getSenderID(), message);
-        } else if (message.getSenderID().equals(FIREBASE_USER.getUid())) {
-            fillLists(message.getReaderID(), message);
-        } else {
-            changeViewsVisibility(View.GONE, View.GONE, View.VISIBLE);
-        }
-    }
-
-    private void fillLists(String userId, Message message) {
-        FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_USER)
-                .child(userId)
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        User user = snapshot.getValue(User.class);
-                        if (user != null) {
-                            Log.e("date", message.getTimestamp()+"");
-                            userMap.put(user.getId(), user);
-                            messageMap.put(user.getId(), message);
-                            checkUserList();
+    private void getRemoteUser() {
+        remoteUserList.clear();
+        for (RecentChat recentChat : recentChatList) {
+            FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_USERS)
+                    .child(recentChat.getRemoteUserID())
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            User remoteUser = snapshot.getValue(User.class);
+                            remoteUser.setId(snapshot.getKey());
+                            Log.e("snaoshot", snapshot.getKey()+"");
+                            remoteUserList.add(remoteUser);
+                            if (remoteUserList.size() == recentChatList.size()) {
+                                recentChatsRV.setAdapter(new RecentChatsAdapter(
+                                        getContext(),
+                                        recentChatList,
+                                        remoteUserList)
+                                );
+                                changeViewsVisibility(View.VISIBLE, View.GONE, View.GONE);
+                            }
                         }
-                    }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        errorMessageTV.setText(String.format("%s", getString(R.string.no_users_available)));
-                        changeViewsVisibility(View.GONE, View.VISIBLE, View.GONE);
-                    }
-                });
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            errorMessageTV.setText(String.format("%s", getString(R.string.no_users_available)));
+                            changeViewsVisibility(View.GONE, View.VISIBLE, View.GONE);
+                        }
+                    });
+        }
     }
 
-    private void checkUserList() {
-        if (userMap.size() > 0) {
-            recentChatsAdapter.notifyDataSetChanged();
-            changeViewsVisibility(View.VISIBLE, View.GONE, View.GONE);
-        } else {
-            changeViewsVisibility(View.GONE, View.GONE, View.VISIBLE);
-        }
+    private void checkChatList() {
+        sortListAlphab(); //Ordering by timestamp
+        getRemoteUser();
+    }
+
+    private void sortListAlphab() {
+        Collections.sort(recentChatList, (recentChatList, rc1) -> {
+            long s1 = recentChatList.getTimestamp();
+            long s2 = rc1.getTimestamp();
+            return Long.compare(s1, s2);
+        });
     }
 
     private void changeViewsVisibility(int recentChatsVis, int errorMessageVis, int welcomingVis) {
@@ -146,16 +161,10 @@ public class RecentChatsFragment extends Fragment {
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-        chatReference.addListenerForSingleValueEvent(incomingMessagesListener);
-    }
-
-    @Override
     public void onPause() {
         super.onPause();
         if (incomingMessagesListener != null) {
-            chatReference.removeEventListener(incomingMessagesListener);
+            recentChatsRef.removeEventListener(incomingMessagesListener);
         }
     }
 }

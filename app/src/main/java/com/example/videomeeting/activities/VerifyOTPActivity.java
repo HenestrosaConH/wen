@@ -25,9 +25,13 @@ import com.google.firebase.auth.PhoneAuthProvider;
 
 import java.util.concurrent.TimeUnit;
 
+import static com.example.videomeeting.utils.Constants.*;
+
 public class VerifyOTPActivity extends AppCompatActivity {
 
     private EditText inputCode1ET, inputCode2ET, inputCode3ET, inputCode4ET, inputCode5ET, inputCode6ET;
+    private ProgressBar verifyCodePB;
+    private Button verifyCodeBT;
     private String verificationId;
 
     @Override
@@ -35,23 +39,106 @@ public class VerifyOTPActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_verify_o_t_p);
 
-        TextView phoneNumberTV = findViewById(R.id.phoneNumberTV);
-        phoneNumberTV.setText(String.format("+34 %s", getIntent().getStringExtra(Constants.INTENT_PHONE_NUMBER)));
+        setupPhoneNumber();
+        getOTPinputsViews();
+        setupOTPinputs();
 
+        verificationId = getIntent().getStringExtra(INTENT_VERIFICATION_ID);
+        verifyCode();
+
+        findViewById(R.id.resendCodeBT).setOnClickListener(v -> resendCode());
+    }
+
+    private void setupPhoneNumber() {
+        TextView phoneNumberTV = findViewById(R.id.phoneNumberTV);
+        phoneNumberTV.setText(String.format("+34 %s", getIntent().getStringExtra(INTENT_PHONE_NUMBER)));
+    }
+
+    private void getOTPinputsViews() {
         inputCode1ET = findViewById(R.id.inputCode1ET);
         inputCode2ET = findViewById(R.id.inputCode2ET);
         inputCode3ET = findViewById(R.id.inputCode3ET);
         inputCode4ET = findViewById(R.id.inputCode4ET);
         inputCode5ET = findViewById(R.id.inputCode5ET);
         inputCode6ET = findViewById(R.id.inputCode6ET);
+    }
 
-        setupOTPinputs();
+    private void setupOTPinputs() {
+        inputCode1ET.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
 
-        final ProgressBar verifyCodePB = findViewById(R.id.verifyCodePB);
-        final Button verifyCodeBT = findViewById(R.id.verifyCodeBT);
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (!s.toString().trim().isEmpty()) {
+                    inputCode2ET.requestFocus();
+                }
+            }
 
-        verificationId = getIntent().getStringExtra(Constants.INTENT_VERIFICATION_ID);
+            @Override
+            public void afterTextChanged(Editable s) { }
+        });
+        inputCode2ET.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
 
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (!s.toString().trim().isEmpty()) {
+                    inputCode3ET.requestFocus();
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) { }
+        });
+        inputCode3ET.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (!s.toString().trim().isEmpty()) {
+                    inputCode4ET.requestFocus();
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) { }
+        });
+        inputCode4ET.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (!s.toString().trim().isEmpty()) {
+                    inputCode5ET.requestFocus();
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) { }
+        });
+        inputCode5ET.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (!s.toString().trim().isEmpty()) {
+                    inputCode6ET.requestFocus();
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) { }
+        });
+    }
+
+    private void verifyCode() {
+        verifyCodePB = findViewById(R.id.verifyCodePB);
+        verifyCodeBT = findViewById(R.id.verifyCodeBT);
         verifyCodeBT.setOnClickListener(v -> {
             if (TextUtils.isEmpty(inputCode1ET.getText().toString())
                     || TextUtils.isEmpty(inputCode2ET.getText().toString())
@@ -71,39 +158,43 @@ public class VerifyOTPActivity extends AppCompatActivity {
                             inputCode6ET.getText().toString();
 
             if (verificationId != null) {
-                verifyCodePB.setVisibility(View.VISIBLE);
-                verifyCodeBT.setVisibility(View.INVISIBLE);
-                PhoneAuthCredential phoneAuthCredential = PhoneAuthProvider.getCredential(
-                        verificationId,
-                        code
-                );
-                FirebaseAuth.getInstance().signInWithCredential(phoneAuthCredential)
-                        .addOnCompleteListener(task -> {
-                            verifyCodePB.setVisibility(View.GONE);
-                            verifyCodeBT.setVisibility(View.VISIBLE);
-                            if (task.isSuccessful()) {
-                                Intent intent;
-                                PreferenceManager preferenceManager = new PreferenceManager(VerifyOTPActivity.this);
-                                if (task.getResult().getAdditionalUserInfo().isNewUser()) {
-                                    intent = new Intent(getApplicationContext(), SetupProfileActivity.class);
-                                    preferenceManager.putString(Constants.INTENT_PHONE_NUMBER, getIntent().getStringExtra(Constants.INTENT_PHONE_NUMBER));
-                                    preferenceManager.putBoolean(Constants.PREF_NEEDS_TO_SETUP_PROFILE, true);
-                                } else {
-                                    intent = new Intent(getApplicationContext(), MainActivity.class);
-                                    preferenceManager.putBoolean(Constants.PREF_IS_SIGNED_IN, true);
-                                }
-
-                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                startActivity(intent);
-                            } else {
-                                Toast.makeText(VerifyOTPActivity.this, getString(R.string.verification_code_not_valid), Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                sendCode(code);
             }
         });
+    }
 
-        findViewById(R.id.resendCodeBT).setOnClickListener(v -> PhoneAuthProvider.getInstance().verifyPhoneNumber(
-                "+34" + getIntent().getStringExtra(Constants.INTENT_PHONE_NUMBER),
+    private void sendCode(String code) {
+        changeViewsVisibility(View.VISIBLE, View.INVISIBLE);
+        PhoneAuthCredential phoneAuthCredential = PhoneAuthProvider.getCredential(
+                verificationId,
+                code
+        );
+        FirebaseAuth.getInstance().signInWithCredential(phoneAuthCredential)
+                .addOnCompleteListener(task -> {
+                    changeViewsVisibility(View.GONE, View.VISIBLE);
+                    if (task.isSuccessful()) {
+                        Intent intent;
+                        PreferenceManager prefManager = new PreferenceManager(VerifyOTPActivity.this);
+                        if (task.getResult().getAdditionalUserInfo().isNewUser()) {
+                            intent = new Intent(getApplicationContext(), SetupProfileActivity.class);
+                            prefManager.putString(INTENT_PHONE_NUMBER, getIntent().getStringExtra(INTENT_PHONE_NUMBER));
+                            prefManager.putBoolean(PREF_NEEDS_TO_SETUP_PROFILE, true);
+                        } else {
+                            intent = new Intent(getApplicationContext(), MainActivity.class);
+                            prefManager.putBoolean(PREF_IS_SIGNED_IN, true);
+                        }
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                    } else {
+                        Toast.makeText(VerifyOTPActivity.this, getString(R.string.verification_code_not_valid), Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+    }
+
+    private void resendCode() {
+        PhoneAuthProvider.getInstance().verifyPhoneNumber(
+                "+34" + getIntent().getStringExtra(INTENT_PHONE_NUMBER),
                 //Once the SMS has been sent, the user can't get a new code for 60 seconds
                 60,
                 TimeUnit.SECONDS,
@@ -123,74 +214,11 @@ public class VerifyOTPActivity extends AppCompatActivity {
                         Toast.makeText(VerifyOTPActivity.this, getString(R.string.code_sent), Toast.LENGTH_SHORT).show();
                     }
                 }
-        ));
+        );
     }
 
-    private void setupOTPinputs() {
-        inputCode1ET.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (!s.toString().trim().isEmpty())
-                    inputCode2ET.requestFocus();
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) { }
-        });
-        inputCode2ET.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (!s.toString().trim().isEmpty())
-                    inputCode3ET.requestFocus();
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) { }
-        });
-        inputCode3ET.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (!s.toString().trim().isEmpty())
-                    inputCode4ET.requestFocus();
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) { }
-        });
-        inputCode4ET.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (!s.toString().trim().isEmpty())
-                    inputCode5ET.requestFocus();
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) { }
-        });
-        inputCode5ET.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (!s.toString().trim().isEmpty())
-                    inputCode6ET.requestFocus();
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) { }
-        });
+    private void changeViewsVisibility(int pbVis, int btVis) {
+        verifyCodePB.setVisibility(pbVis);
+        verifyCodeBT.setVisibility(btVis);
     }
 }

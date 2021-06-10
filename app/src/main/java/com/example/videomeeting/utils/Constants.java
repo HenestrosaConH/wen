@@ -10,21 +10,19 @@ public class Constants {
 
     //FIREBASE KEYS//
     //Main nodes
-    public static final String KEY_COLLECTION_USER = "Users";
-    public static final String KEY_COLLECTION_USERNAME = "UserNames";
-    public static final String KEY_COLLECTION_CALL = "Calls";
-    public static final String KEY_COLLECTION_MESSAGE = "Messages";
+    public static final String KEY_COLLECTION_USERS = "Users";
+    public static final String KEY_COLLECTION_USERNAMES = "UserNames";
+    public static final String KEY_COLLECTION_RECENT_CHATS = "RecentChats";
+    public static final String KEY_COLLECTION_CALLS = "Calls";
+    public static final String KEY_COLLECTION_MESSAGES = "Messages";
     //public static final String KEY_COLLECTION_CONTACTED_USER = "ContactedUser";
-    public static final String KEY_STORAGE_PROFILE_PICTURE = "ProfilePictures";
-    //User names node keys
-    public static final String KEY_USERNAME_STATE_ORIGINAL = "original";
-    public static final String KEY_USERNAME_STATE_CHANGED = "changed";
+    public static final String KEY_STORAGE_PROFILE_PICTURES = "ProfilePictures";
     //User node keys
     public static final String KEY_USER_ID = "id";
     public static final String KEY_USERNAME = "userName";
     public static final String KEY_ABOUT = "about";
     public static final String KEY_ABOUT_DEFAULT = "Available";
-    public static final String KEY_CONTACTED_USER = "contactedUsers";
+    public static final String KEY_CONTACTED_USERS = "contacts";
     //We need a FCM token of a user to send and receive a meeting invitation. Every time the user signs up/in a new token is created.
     //When the user signs out, we remove the token from the database
     public static final String KEY_FCM_TOKEN = "fcmToken";
@@ -33,10 +31,10 @@ public class Constants {
     //Last seen and the privacy selected by the user
     public static final String KEY_LAST_SEEN = "lastSeen";
     public static final String KEY_LAST_SEEN_ONLINE = "online";
-    public static final String KEY_IS_LAST_SEEN_ENABLED = "lastSeenEnabled";
-    public static final String KEY_LAST_SEEN_TRUE = "true";
+    public static final String KEY_IS_LAST_SEEN_STATUS = "lastSeenStatus";
+    public static final String KEY_LAST_SEEN_ALL = "all";
     public static final String KEY_LAST_SEEN_CONTACTS = "contacts";
-    public static final String KEY_LAST_SEEN_FALSE = "false";
+    public static final String KEY_LAST_SEEN_NONE = "none";
     //Current user
     public static FirebaseUser FIREBASE_USER;
     public static User CURRENT_USER;
@@ -70,8 +68,6 @@ public class Constants {
     public static final String NOTIF_LIGHT_YELLOW = "yellow";
     public static final String NOTIF_VIBRATION_LONG = "long";
     public static final String NOTIF_VIBRATION_SHORT = "short";
-    //Default notifications chats (< Android 8.0)
-    //TODO?
     //Default notifications channel for chats
     public static final String CHANNEL_CHATS_NAME = "Chats";
     public static final String CHANNEL_CHATS_LIGHT = "chatLight";
@@ -95,9 +91,6 @@ public class Constants {
     //Intent OTP
     public static final String INTENT_PHONE_NUMBER = "phoneNumber";
     public static final String INTENT_VERIFICATION_ID = "verificationId";
-
-    //BUNDLE
-    public static final String BUNDLE_SEARCH = "search";
 
     //NOTIFICATIONS JSON KEYS
     public static final String NOTIFICATION_TITLE = "title";

@@ -1,20 +1,21 @@
 package com.example.videomeeting.models;
 
+import com.google.firebase.database.Exclude;
+
 import java.io.Serializable;
 
 public class Message implements Serializable {
 
-    private String senderID, readerID, message, timestamp;
-    private boolean isSeen;
+    String senderID, message;
+    long timestamp;
+    boolean seen;
 
     public Message() {}
 
-    public Message(String senderID, String readerID, String message, String timestamp, boolean isSeen) {
+    public Message(String senderID, String message, boolean seen) {
         this.senderID = senderID;
-        this.readerID = readerID;
         this.message = message;
-        this.timestamp = timestamp;
-        this.isSeen = isSeen;
+        this.seen = seen;
     }
 
     public String getSenderID() {
@@ -24,14 +25,6 @@ public class Message implements Serializable {
         this.senderID = senderID;
     }
 
-
-    public String getReaderID() {
-        return readerID;
-    }
-    public void setReaderID(String readerID) {
-        this.readerID = readerID;
-    }
-
     public String getMessage() {
         return message;
     }
@@ -39,17 +32,19 @@ public class Message implements Serializable {
         this.message = message;
     }
 
-    public boolean isSeen() {
-        return isSeen;
+    public boolean getSeen() {
+        return seen;
     }
     public void setSeen(boolean seen) {
-        this.isSeen = seen;
+        this.seen = seen;
     }
 
-    public String getTimestamp() {
+    @Exclude
+    public long getTimestamp() {
         return timestamp;
     }
-    public void setTimestamp(String timestamp) {
+    @Exclude
+    public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
     }
 }

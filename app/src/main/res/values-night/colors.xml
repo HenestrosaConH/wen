@@ -18,6 +18,7 @@
     <color name="colorChange">#FF9800</color>
     <!-- Message box background color (activity_chat) -->
     <color name="colorMessageBackground">#56534E</color>
+    <color name="colorTextMessageBox">#FFFFFF</color>
     <color name="colorMessageSent">#5490FF</color>
     <color name="colorMessageReceived">#1F2963</color>
     <!-- Scrollbar background -->

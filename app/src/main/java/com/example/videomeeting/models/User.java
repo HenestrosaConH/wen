@@ -1,32 +1,25 @@
 package com.example.videomeeting.models;
 
 import com.example.videomeeting.utils.Constants;
+import com.google.firebase.database.Exclude;
 
 import java.io.Serializable;
 import java.util.HashMap;
 
 public class User implements Serializable {
 
-    public String id, userName, phoneNumber, fcmToken, imageURL, lastSeen, about, isLastSeenEnabled;
-    public HashMap<String, Boolean> contactedUser;
+    String id, userName, fcmToken, imageURL, lastSeen, about, lastSeenStatus;
+    HashMap<String, Boolean> contacts;
 
     public User() {}
 
-    public User(String id, String userName, String phoneNumber, String fcmToken, String imageURL) {
-        this.id = id;
+    public User(String userName, String fcmToken, String imageURL) {
         this.userName = userName;
-        this.phoneNumber = phoneNumber;
         this.fcmToken = fcmToken;
         this.imageURL = imageURL;
+        lastSeen = Constants.KEY_LAST_SEEN_ONLINE;
         about = Constants.KEY_ABOUT_DEFAULT;
-        isLastSeenEnabled = Constants.KEY_LAST_SEEN_TRUE;
-    }
-
-    public String getId() {
-        return id;
-    }
-    public void setId(String id) {
-        this.id = id;
+        lastSeenStatus = Constants.KEY_LAST_SEEN_ALL;
     }
 
     public String getUserName() {
@@ -34,13 +27,6 @@ public class User implements Serializable {
     }
     public void setUserName(String userName) {
         this.userName = userName;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
     }
 
     public String getFcmToken() {
@@ -71,13 +57,22 @@ public class User implements Serializable {
         this.about = about;
     }
 
-    public String isLastSeenEnabled() { return isLastSeenEnabled; }
-    public void setLastSeenEnabled(String isLastSeenEnabled) { this.isLastSeenEnabled = isLastSeenEnabled; }
+    public String getLastSeenStatus() {
+        return lastSeenStatus;
+    }
+    public void setLastSeenStatus(String lastSeenStatus) {
+        this.lastSeenStatus = lastSeenStatus;
+    }
 
-    public HashMap<String, Boolean> getContactedUser() {
-        return contactedUser;
+    public HashMap<String, Boolean> getContacts() {
+        return contacts;
     }
-    public void setContactedUser(HashMap<String, Boolean> contactedUser) {
-        this.contactedUser = contactedUser;
+    public void setContacts(HashMap<String, Boolean> contacts) {
+        this.contacts = contacts;
     }
+
+    @Exclude
+    public String getId() { return id; }
+    @Exclude
+    public void setId(String id) { this.id = id; }
 }

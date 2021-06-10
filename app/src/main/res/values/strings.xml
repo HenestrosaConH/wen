@@ -9,7 +9,7 @@
     <string name="incoming_videocall">Incoming video call</string>
     <string name="outgoing_videocall">Outgoing video call</string>
     <string name="outgoing_call">Outgoing call</string>
-    <string name="battery_optimization_enabled">Battery optimization is enabled. It can interrupt services running in the background.</string>
+    <string name="battery_optimization_enabled">Battery optimization is enabled. Please, disable it to avoid the interruption of services running in the background.</string>
     <string name="warning">Warning</string>
     <string name="dont_ask_again">Don\'t ask again</string>
     <string name="disable">Disable</string>
@@ -50,7 +50,7 @@
     <string name="skip">Skip</string>
     <!-- TOOLBAR ITEMS -->
     <string name="settings">Settings</string>
-    <string name="logout">Log out</string>
+    <string name="logout">Sign out</string>
     <!-- SETTINGS OPTIONS -->
     <string name="notifications">Notifications</string>
     <string name="theme">Theme</string>
@@ -75,7 +75,7 @@
     <string name="my_contacts">My contacts</string>
     <string name="nobody">Nobody</string>
     <string name="some_changes_have_been_made">Some changes have been made. Do you want to save them?</string>
-    <string name="only_letter_or_numbers">Only letters or numbers</string>
+    <string name="only_letter_or_numbers">Only letters and/or numbers</string>
     <string name="message">Message</string>
     <string name="last_seen_yesterday_at">last seen yesterday at</string>
     <string name="at">at</string>
@@ -105,16 +105,16 @@
     <string name="info_notifications">Note that the preferences from the private chats won\'t work on Android 8.0 or above. Click here to go to the app notifications settings of the system.</string>
     <string name="messages">Messages</string>
     <string name="users">Users</string>
-    <string name="welcoming_message_chat"><b>Welcome to Wen</b>\n\nStart messaging by searching for a user by tapping on the search button in the upper right corner or by tapping in the floating button to chat with someone from your contacts list.</string>
-    <string name="welcoming_message_call"><b>Welcome to Wen</b>\n\nStart calling by searching for a user by tapping on the search button in the upper right corner or by tapping in the floating button to call someone from your contacts list.</string>
-    <string name="group_disabled_tip">Select the users you want to call by holding them down</string>
+    <string name="welcoming_message_chat"><b>Welcome to Wen</b>\n\nStart messaging by searching for a user or with someone from your contacts list.</string>
+    <string name="welcoming_message_call"><b>Welcome to Wen</b>\n\nStart calling by searching for a user or with someone from your contacts list.</string>
+    <string name="group_disabled_tip">Select the users that you want to call by holding them down</string>
     <string name="add_contact">Add contact</string>
     <string name="delete_contact">Delete contact</string>
     <string name="username_too_short">User name has to have 4 characters at least</string>
-    <string name="no_contacts">You don\'t have any contact yet. You can find a user using the search item of the main page!</string>
+    <string name="no_contacts">You don\'t have any contact yet. You can find a user using the search item of the main page.</string>
     <string name="phone_and_warning">Phone (only you can see the number)</string>
-    <string name="no_messages_yet">No messages here yet…  Send him a greeting!</string>
+    <string name="no_messages_yet">No messages here yet…\n  Send him a greeting!</string>
     <string name="search_a_message">Search a message by entering the text in the bar above</string>
-    <string name="search_a_user">Search a user name by entering the text in the bar above</string>
+    <string name="search_a_user">Search a user name by entering the text in the bar above. We will process it once you enter 4 or more characters.</string>
     <string name="chats">Chats</string>
 </resources>

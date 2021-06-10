@@ -5,7 +5,6 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
@@ -32,9 +31,8 @@ public class SearchActivity extends AppCompatActivity {
     }
 
     private void setupActionBar() {
-        ActionBar actionBar = this.getSupportActionBar();
-        actionBar.setTitle("");
-        actionBar.setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle("");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 
     private void setupViewPager() {

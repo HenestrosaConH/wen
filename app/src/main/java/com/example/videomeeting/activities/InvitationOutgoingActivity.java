@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -22,6 +23,7 @@ import com.example.videomeeting.apis.ApiService;
 import com.example.videomeeting.models.Call;
 import com.example.videomeeting.models.User;
 import com.example.videomeeting.utils.PreferenceManager;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.gson.Gson;
@@ -35,12 +37,14 @@ import org.json.JSONObject;
 import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import retrofit2.Callback;
 import retrofit2.Response;
 
 import static com.example.videomeeting.utils.Constants.CURRENT_USER;
+import static com.example.videomeeting.utils.Constants.FIREBASE_USER;
 import static com.example.videomeeting.utils.Constants.INTENT_ARE_MULTIPLE_SELECTED_USERS;
 import static com.example.videomeeting.utils.Constants.INTENT_CALL_TYPE;
 import static com.example.videomeeting.utils.Constants.INTENT_CALL_TYPE_AUDIO;
@@ -48,7 +52,7 @@ import static com.example.videomeeting.utils.Constants.INTENT_CALL_TYPE_VIDEO;
 import static com.example.videomeeting.utils.Constants.INTENT_SELECTED_USERS;
 import static com.example.videomeeting.utils.Constants.INTENT_USER;
 import static com.example.videomeeting.utils.Constants.KEY_CALL_MISSED;
-import static com.example.videomeeting.utils.Constants.KEY_COLLECTION_CALL;
+import static com.example.videomeeting.utils.Constants.KEY_COLLECTION_CALLS;
 import static com.example.videomeeting.utils.Constants.KEY_IMAGE_URL;
 import static com.example.videomeeting.utils.Constants.KEY_IMAGE_URL_DEFAULT;
 import static com.example.videomeeting.utils.Constants.KEY_USERNAME;
@@ -67,37 +71,52 @@ import static com.example.videomeeting.utils.Constants.REMOTE_MSG_REGISTRATION_I
 
 public class InvitationOutgoingActivity extends AppCompatActivity {
 
-    private PreferenceManager preferenceManager;
+    private final DatabaseReference callsRef =
+            FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_CALLS);
+
+    private PreferenceManager prefManager;
     private String inviterToken = null;
     private String callType = null;
     private String group = null;
+
+    private boolean isGroup = false;
+    private List<String> idsList;
 
     private MediaPlayer mediaPlayer;
     private TextView defaultProfileTV, usernameTV;
 
     private int rejectionCount = 0;
     private int totalReceivers = 0;
-    private User user;
-    private String id;
+    private User remoteUser;
+    private String timestamp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_invitation_outgoing);
 
+        prefManager = new PreferenceManager(getApplicationContext());
+        setupMediaPlayer();
+        setCallType();
+        bindUserData();
+        setupRejectIV();
+        setupCall();
+    }
+
+    private void setupMediaPlayer() {
         mediaPlayer = MediaPlayer.create(InvitationOutgoingActivity.this, R.raw.ringback_tone);
         mediaPlayer.start();
 
         mediaPlayer.setOnCompletionListener(mp -> {
             mediaPlayer.pause();
             Toast.makeText(InvitationOutgoingActivity.this, getString(R.string.not_available), Toast.LENGTH_SHORT).show();
-            if (user != null)
-                cancelInvitation(user.fcmToken, null);
+            if (remoteUser != null) {
+                cancelInvitation(remoteUser.getFcmToken(), null);
+            }
         });
-        mediaPlayer.start();
+    }
 
-        preferenceManager = new PreferenceManager(getApplicationContext());
-
+    private void setCallType() {
         TextView outgoingTV = findViewById(R.id.outgoingTV);
         ImageView callTypeIV = findViewById(R.id.callTypeIV);
         callType = getIntent().getStringExtra(INTENT_CALL_TYPE);
@@ -111,26 +130,30 @@ public class InvitationOutgoingActivity extends AppCompatActivity {
                 outgoingTV.setText(getString(R.string.outgoing_call));
             }
         }
+    }
 
+    private void bindUserData() {
         defaultProfileTV = findViewById(R.id.defaultProfileTV);
         usernameTV = findViewById(R.id.usernameTV);
 
-        user = (User) getIntent().getSerializableExtra(INTENT_USER);
-        if (user != null) {
-            if (user.getImageURL().equals(KEY_IMAGE_URL_DEFAULT))
-                defaultProfileTV.setText(user.getUserName().substring(0,1));
-            else {
-                defaultProfileTV.setVisibility(View.GONE);
+        remoteUser = (User) getIntent().getSerializableExtra(INTENT_USER);
+        if (remoteUser != null) {
+            if (remoteUser.getImageURL().equals(KEY_IMAGE_URL_DEFAULT)) {
+                defaultProfileTV.setText(remoteUser.getUserName().substring(0,1));
+            } else {
                 ImageView profileIV = findViewById(R.id.profileIV);
+                defaultProfileTV.setVisibility(View.GONE);
                 profileIV.setVisibility(View.VISIBLE);
                 Glide.with(InvitationOutgoingActivity.this)
-                        .load(user.getImageURL())
+                        .load(remoteUser.getImageURL())
                         .circleCrop()
                         .into(profileIV);
             }
-            usernameTV.setText(user.getUserName());
+            usernameTV.setText(remoteUser.getUserName());
         }
+    }
 
+    private void setupRejectIV() {
         ImageView rejectIV = findViewById(R.id.rejectIV);
         rejectIV.setOnClickListener(v -> {
             mediaPlayer.pause();
@@ -138,10 +161,13 @@ public class InvitationOutgoingActivity extends AppCompatActivity {
                 Type type = new TypeToken<ArrayList<User>>(){}.getType();
                 ArrayList<User> receivers = new Gson().fromJson(getIntent().getStringExtra(INTENT_SELECTED_USERS), type);
                 cancelInvitation(null, receivers);
-            } else if (user != null)
-                cancelInvitation(user.fcmToken, null);
+            } else if (remoteUser != null) {
+                cancelInvitation(remoteUser.getFcmToken(), null);
+            }
         });
+    }
 
+    private void setupCall() {
         FirebaseInstanceId.getInstance().getInstanceId().addOnCompleteListener(task -> {
             if (task.isSuccessful() && task.getResult() != null) {
                 inviterToken = task.getResult().getToken();
@@ -149,14 +175,13 @@ public class InvitationOutgoingActivity extends AppCompatActivity {
                     if (getIntent().getBooleanExtra(INTENT_ARE_MULTIPLE_SELECTED_USERS, false)) {
                         Type type = new TypeToken<ArrayList<User>>(){}.getType();
                         ArrayList<User> receivers = new Gson().fromJson(getIntent().getStringExtra(INTENT_SELECTED_USERS), type);
-                        if (receivers != null)
+                        if (receivers != null) {
                             totalReceivers = receivers.size();
-                        initiateCall(callType, null, receivers);
-                    } else {
-                        if (user != null) {
-                            totalReceivers = 1;
-                            initiateCall(callType, user.fcmToken, null);
                         }
+                        initiateCall(callType, null, receivers);
+                    } else if (remoteUser != null) {
+                        totalReceivers = 1;
+                        initiateCall(callType, remoteUser.getFcmToken(), null);
                     }
                 }
             }
@@ -167,18 +192,24 @@ public class InvitationOutgoingActivity extends AppCompatActivity {
         try {
             JSONArray tokens = new JSONArray();
 
-            if (receivers != null) tokens.put(receiverToken);
-            //If group call
+            if (receiverToken != null) {
+                tokens.put(receiverToken);
+            }
+
+            idsList = new ArrayList<>();
+            StringBuilder usernames = new StringBuilder();
             if (receivers != null && receivers.size() > 0) {
-                StringBuilder userNames = new StringBuilder();
                 int i;
                 for (i = 0; i < receivers.size(); i++) {
-                    tokens.put(receivers.get(i).fcmToken);
-                    userNames.append(receivers.get(i).getUserName()).append("\n");
+                    tokens.put(receivers.get(i).getFcmToken());
+                    idsList.add(receivers.get(i).getId());
+                    usernames.append(receivers.get(i).getUserName()).append("\n");
                 }
+                isGroup = true;
                 defaultProfileTV.setVisibility(View.GONE);
-                usernameTV.setText(userNames.toString());
+                usernameTV.setText(usernames.toString());
             }
+            Log.e("smtnh else", "to say");
 
             tokens.put(receiverToken);
 
@@ -187,13 +218,18 @@ public class InvitationOutgoingActivity extends AppCompatActivity {
 
             data.put(INTENT_CALL_TYPE, REMOTE_MSG_INVITATION);
             data.put(REMOTE_MSG_CALL_TYPE, callType);
-            data.put(KEY_USER_ID, CURRENT_USER.getUserName());
-            data.put(KEY_USERNAME, CURRENT_USER.getUserName());
+            data.put(KEY_USER_ID, CURRENT_USER.getId());
+            if (isGroup) {
+                String usernamesString = usernames.append(CURRENT_USER.getUserName()).toString();
+                data.put(KEY_USERNAME, usernamesString);
+            } else {
+                data.put(KEY_USERNAME, CURRENT_USER.getUserName());
+            }
             data.put(KEY_IMAGE_URL, CURRENT_USER.getImageURL());
             data.put(REMOTE_MSG_INVITER_TOKEN, inviterToken);
 
             group =
-                    preferenceManager.getString(KEY_USER_ID) + "_" +
+                    prefManager.getString(KEY_USER_ID) + "_" +
                             UUID.randomUUID().toString() .substring(0, 5);
             data.put(REMOTE_MSG_GROUP, group);
 
@@ -202,23 +238,36 @@ public class InvitationOutgoingActivity extends AppCompatActivity {
 
             sendRemoteMessage(body.toString(), REMOTE_MSG_INVITATION);
 
-            String date = String.valueOf(System.currentTimeMillis());
-            Call call = new Call(
-                    CURRENT_USER.getId(),
-                    user.getId(),
-                    date,
-                    false,
-                    callType
-            );
+            timestamp = String.valueOf(System.currentTimeMillis());
+            Call call;
+            if (isGroup) {
+                String usernamesString = usernames.append(CURRENT_USER.getUserName()).toString();
+                call = new Call(
+                        usernamesString,
+                        usernamesString,
+                        false,
+                        callType
+                );
+                call.setTimestamp(Long.parseLong(timestamp));
 
-            int randomId = (int) (Math.random() * 1000);
-            id = date + "-" + randomId;
-            FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_CALL)
-                    .child(id)
-                    .setValue(call);
-
+                callsRef.child(FIREBASE_USER.getUid()).child(timestamp).setValue(call);
+                for (String id : idsList) {
+                    callsRef.child(id).child(timestamp).setValue(call);
+                }
+            } else {
+                call = new Call(
+                        FIREBASE_USER.getUid(),
+                        remoteUser.getId(),
+                        false,
+                        callType
+                );
+                call.setTimestamp(Long.parseLong(timestamp));
+                callsRef.child(FIREBASE_USER.getUid()).child(timestamp).setValue(call);
+                callsRef.child(remoteUser.getId()).child(timestamp).setValue(call);
+            }
         } catch (Exception e) {
-            Toast.makeText(InvitationOutgoingActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            mediaPlayer.pause();
+            Toast.makeText(InvitationOutgoingActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
             finish();
         }
     }
@@ -242,7 +291,6 @@ public class InvitationOutgoingActivity extends AppCompatActivity {
                     finish();
                 }
             }
-
             @Override
             public void onFailure(@NonNull retrofit2.Call call, @NonNull Throwable t) {
                 mediaPlayer.pause();
@@ -256,10 +304,13 @@ public class InvitationOutgoingActivity extends AppCompatActivity {
         try {
             JSONArray tokens = new JSONArray();
 
-            if (receiverToken != null) tokens.put(receiverToken);
+            if (receiverToken != null) {
+                tokens.put(receiverToken);
+            }
             if (receivers != null && receivers.size() > 0) {
-                for (User user : receivers)
-                    tokens.put(user.fcmToken);
+                for (User user : receivers) {
+                    tokens.put(user.getFcmToken());
+                }
             }
 
             JSONObject body = new JSONObject();
@@ -295,9 +346,9 @@ public class InvitationOutgoingActivity extends AppCompatActivity {
                         builder.setServerURL(serverURL);
                         builder.setWelcomePageEnabled(false);
                         builder.setRoom(group);
-                        if (callType.equals(INTENT_CALL_TYPE_AUDIO))
+                        if (callType.equals(INTENT_CALL_TYPE_AUDIO)) {
                             builder.setVideoMuted(true);
-
+                        }
                         mediaPlayer.pause();
                         JitsiMeetActivity.launch(InvitationOutgoingActivity.this, builder.build());
                         finish();
@@ -309,8 +360,8 @@ public class InvitationOutgoingActivity extends AppCompatActivity {
                 } else if (type.equals(REMOTE_MSG_INVITATION_REJECTED)) {
                     rejectionCount++;
                     if (rejectionCount == totalReceivers) {
-                        Toast.makeText(context, getString(R.string.rejected), Toast.LENGTH_SHORT).show();
                         mediaPlayer.pause();
+                        Toast.makeText(context, getString(R.string.rejected), Toast.LENGTH_SHORT).show();
                         setCallMissedTrue();
                         finish();
                     }
@@ -320,10 +371,23 @@ public class InvitationOutgoingActivity extends AppCompatActivity {
     };
 
     private void setCallMissedTrue() {
-        FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_CALL)
-                .child(id)
+        callsRef.child(FIREBASE_USER.getUid())
+                .child(timestamp)
                 .child(KEY_CALL_MISSED)
                 .setValue(true);
+        if (isGroup) {
+            for (String id : idsList) {
+                callsRef.child(id)
+                        .child(timestamp)
+                        .child(KEY_CALL_MISSED)
+                        .setValue(true);
+            }
+        } else {
+            callsRef.child(remoteUser.getId())
+                    .child(timestamp)
+                    .child(KEY_CALL_MISSED)
+                    .setValue(true);
+        }
     }
 
     @Override

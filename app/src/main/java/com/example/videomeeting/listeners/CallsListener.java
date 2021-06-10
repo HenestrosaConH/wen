@@ -17,8 +17,8 @@ public class CallsListener {
 
     public CallsListener() {}
 
-    public void initiateVideocall(User user, Context context) {
-        if (user.fcmToken == null || user.fcmToken.trim().isEmpty())
+    public void initiateVideoCall(User user, Context context) {
+        if (user.getFcmToken() == null || user.getFcmToken().trim().isEmpty())
             Toast.makeText(context, user.getUserName() + " " + context.getString(R.string.is_not_available), Toast.LENGTH_SHORT).show();
         else {
             Intent intent = new Intent(context, InvitationOutgoingActivity.class);
@@ -29,7 +29,7 @@ public class CallsListener {
     }
 
     public void initiateCall(User user, Context context) {
-        if (user.fcmToken == null || user.fcmToken.trim().isEmpty())
+        if (user.getFcmToken() == null || user.getFcmToken().trim().isEmpty())
             Toast.makeText(context, user.getUserName() + " " + context.getString(R.string.is_not_available), Toast.LENGTH_SHORT).show();
         else {
             Intent intent = new Intent(context, InvitationOutgoingActivity.class);

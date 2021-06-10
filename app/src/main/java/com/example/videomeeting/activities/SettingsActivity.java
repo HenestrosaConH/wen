@@ -16,7 +16,6 @@ import com.example.videomeeting.utils.LanguageUtils;
 import com.example.videomeeting.utils.PreferenceManager;
 
 import java.util.Locale;
-import java.util.Objects;
 
 import static com.example.videomeeting.utils.Constants.LANGUAGE_CHINESE;
 import static com.example.videomeeting.utils.Constants.LANGUAGE_ENGLISH;
@@ -26,7 +25,7 @@ import static com.example.videomeeting.utils.Constants.PREF_LANGUAGE;
 
 public class SettingsActivity extends AppCompatActivity {
 
-    private PreferenceManager preferenceManager;
+    private PreferenceManager prefManager;
     private RelativeLayout relativeLayout;
     private int checkedItem;
 
@@ -36,32 +35,46 @@ public class SettingsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_settings);
 
         setTitle(getString(R.string.settings));
-        Objects.requireNonNull(SettingsActivity.this.getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+        SettingsActivity.this.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        preferenceManager = new PreferenceManager(getApplicationContext());
+        prefManager = new PreferenceManager(getApplicationContext());
+        relativeLayout = findViewById(R.id.relativeLayout);
 
+        bindProfileOption();
+        bindNotifOption();
+        bindLangOption();
+        bindThemeOption();
+    }
+
+    private void bindProfileOption() {
         CardView profileCV = findViewById(R.id.profileCV);
         profileCV.setOnClickListener(v -> startActivity(new Intent(SettingsActivity.this, ProfileActivity.class)
                 .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)));
 
-        CardView notificationsCV = findViewById(R.id.notificationsCV);
-        notificationsCV.setOnClickListener(v -> {
-            startActivity(new Intent(this, NotificationsPrefActivity.class)
-                    .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
-        });
+    }
 
+    private void bindNotifOption() {
+        CardView notificationsCV = findViewById(R.id.notificationsCV);
+        notificationsCV.setOnClickListener(v ->
+                startActivity(new Intent(this, NotificationsPrefActivity.class)
+                        .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP))
+        );
+    }
+
+    private void bindLangOption() {
         CardView languageCV = findViewById(R.id.languageCV);
         languageCV.setOnClickListener(v -> changeLanguage());
+    }
 
-        relativeLayout = findViewById(R.id.relativeLayout);
+    private void bindThemeOption() {
         CardView themeCV = findViewById(R.id.themeCV);
         themeCV.setOnClickListener(v -> changeTheme());
     }
 
     private void changeLanguage() {
         String[] items = {"Español", "English", "简体中文"};
-        if (preferenceManager.getSharedPreferences().contains(PREF_LANGUAGE)) {
-            switch (preferenceManager.getString(PREF_LANGUAGE)) {
+        if (prefManager.getSharedPreferences().contains(PREF_LANGUAGE)) {
+            switch (prefManager.getString(PREF_LANGUAGE)) {
                 case LANGUAGE_SPANISH:
                     checkedItem = 0;
                     break;
@@ -100,15 +113,15 @@ public class SettingsActivity extends AppCompatActivity {
                 .setPositiveButton(android.R.string.ok, (dialog, which) -> {
                     switch (checkedItem) {
                         case 0:
-                            preferenceManager.putString(PREF_LANGUAGE, LANGUAGE_SPANISH);
+                            prefManager.putString(PREF_LANGUAGE, LANGUAGE_SPANISH);
                             LanguageUtils.setLocale(SettingsActivity.this, LANGUAGE_SPANISH);
                             break;
                         case 1:
-                            preferenceManager.putString(PREF_LANGUAGE, LANGUAGE_ENGLISH);
+                            prefManager.putString(PREF_LANGUAGE, LANGUAGE_ENGLISH);
                             LanguageUtils.setLocale(SettingsActivity.this, LANGUAGE_ENGLISH);
                             break;
                         case 2:
-                            preferenceManager.putString(PREF_LANGUAGE, LANGUAGE_CHINESE);
+                            prefManager.putString(PREF_LANGUAGE, LANGUAGE_CHINESE);
                             LanguageUtils.setLocale(SettingsActivity.this, LANGUAGE_CHINESE);
                             break;
                     }
@@ -150,7 +163,7 @@ public class SettingsActivity extends AppCompatActivity {
                             R.drawable.background_settings,
                             null)
                     );
-                    preferenceManager.putBoolean(PREF_IS_DARK_THEME_ON, checkedItem != 0);
+                    prefManager.putBoolean(PREF_IS_DARK_THEME_ON, checkedItem != 0);
                     dialog.dismiss();
                 })
                 .setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.dismiss())

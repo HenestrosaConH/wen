@@ -108,7 +108,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:srcCompat="@drawable/ic_call"
-        app:tint="@color/colorPrimary" />
+        app:tint="@color/colorAccent" />
 
     <ImageView
         android:id="@+id/videocallIV"
@@ -123,6 +123,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:srcCompat="@drawable/ic_videocam"
-        app:tint="@color/colorPrimary" />
+        app:tint="@color/colorAccent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

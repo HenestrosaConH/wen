@@ -1,17 +1,19 @@
 package com.example.videomeeting.models;
 
+import com.google.firebase.database.Exclude;
+
 public class Call {
 
-    String callerID, receiverID, date, callType;
-    boolean isMissed;
+    String callerID, receiverID, callType;
+    long timestamp;
+    boolean missed;
 
     public Call() { }
 
-    public Call(String callerID, String receiverID, String date, boolean isMissed, String callType) {
+    public Call(String callerID, String receiverID, boolean missed, String callType) {
         this.callerID = callerID;
         this.receiverID = receiverID;
-        this.date = date;
-        this.isMissed = isMissed;
+        this.missed = missed;
         this.callType = callType;
     }
 
@@ -29,18 +31,11 @@ public class Call {
         this.receiverID = receiverID;
     }
 
-    public String getDate() {
-        return date;
+    public boolean getMissed() {
+        return missed;
     }
-    public void setDate(String date) {
-        this.date = date;
-    }
-
-    public boolean isMissed() {
-        return isMissed;
-    }
-    public void setMissed(boolean isMissed) {
-        this.isMissed = isMissed;
+    public void setMissed(boolean missed) {
+        this.missed = missed;
     }
 
     public String getCallType() {
@@ -48,5 +43,14 @@ public class Call {
     }
     public void setCallType(String callType) {
         this.callType = callType;
+    }
+
+    @Exclude
+    public long getTimestamp() {
+        return timestamp;
+    }
+    @Exclude
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 }

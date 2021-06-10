@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -101,7 +102,7 @@ public class UsersListCallsAdapter extends RecyclerView.Adapter<UsersListCallsAd
         });
 
         profileDG.findViewById(R.id.callLY).setOnClickListener(v -> callsListener.initiateCall(user, context));
-        profileDG.findViewById(R.id.videocallLY).setOnClickListener(v -> callsListener.initiateVideocall(user, context));
+        profileDG.findViewById(R.id.videocallLY).setOnClickListener(v -> callsListener.initiateVideoCall(user, context));
 
         profileDG.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         profileDG.show();
@@ -115,7 +116,7 @@ public class UsersListCallsAdapter extends RecyclerView.Adapter<UsersListCallsAd
     class UsersCallViewHolder extends RecyclerView.ViewHolder {
         TextView defaultProfileTV, usernameTV, aboutTV;
         ImageView profileIV,
-                callIV, videocallIV,
+                callIV, videoCallIV,
                 selectedUserIV,
                 missedCallIV, missedVideoCallIV,
                 outgoingCallIV, incomingCallIV;
@@ -129,7 +130,7 @@ public class UsersListCallsAdapter extends RecyclerView.Adapter<UsersListCallsAd
             aboutTV = itemView.findViewById(R.id.aboutTV);
             usernameTV = itemView.findViewById(R.id.usernameTV);
             callIV = itemView.findViewById(R.id.callIV);
-            videocallIV = itemView.findViewById(R.id.videocallIV);
+            videoCallIV = itemView.findViewById(R.id.videocallIV);
             missedCallIV = itemView.findViewById(R.id.missedCallIV);
             missedVideoCallIV = itemView.findViewById(R.id.missedVideoCallIV);
             outgoingCallIV = itemView.findViewById(R.id.outgoingCallIV);
@@ -155,7 +156,7 @@ public class UsersListCallsAdapter extends RecyclerView.Adapter<UsersListCallsAd
             aboutTV.setText(user.getAbout());
 
             callIV.setOnClickListener(v -> callsListener.initiateCall(user, context));
-            videocallIV.setOnClickListener(v -> callsListener.initiateVideocall(user, context));
+            videoCallIV.setOnClickListener(v -> callsListener.initiateVideoCall(user, context));
 
             profileIV.setOnClickListener(v -> showProfileCard(user));
             defaultProfileTV.setOnClickListener(v -> showProfileCard(user));
@@ -166,7 +167,7 @@ public class UsersListCallsAdapter extends RecyclerView.Adapter<UsersListCallsAd
                     selectedUsers.add(user);
                     selectedUserIV.setVisibility(View.VISIBLE);
                     callIV.setVisibility(View.GONE);
-                    videocallIV.setVisibility(View.GONE);
+                    videoCallIV.setVisibility(View.GONE);
                     onMultipleCallsListener.onMultipleUsersAction(true);
                 }
                 return true;
@@ -177,16 +178,16 @@ public class UsersListCallsAdapter extends RecyclerView.Adapter<UsersListCallsAd
                     selectedUsers.remove(user);
                     selectedUserIV.setVisibility(View.GONE);
                     callIV.setVisibility(View.VISIBLE);
-                    videocallIV.setVisibility(View.VISIBLE);
-
-                    if (selectedUsers.size() == 0)
+                    videoCallIV.setVisibility(View.VISIBLE);
+                    if (selectedUsers.size() == 0) {
                         onMultipleCallsListener.onMultipleUsersAction(false);
+                    }
                 } else {
                     if (selectedUsers.size() > 0) {
-                        selectedUsers.remove(user);
+                        selectedUsers.add(user);
                         selectedUserIV.setVisibility(View.VISIBLE);
                         callIV.setVisibility(View.GONE);
-                        videocallIV.setVisibility(View.GONE);
+                        videoCallIV.setVisibility(View.GONE);
                     }
                 }
             });//

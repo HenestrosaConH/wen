@@ -45,17 +45,28 @@ public class InvitationIncomingActivity extends AppCompatActivity {
     private String callType = null;
     private Ringtone ringtone;
     private Vibrator vibrator;
-    private PreferenceManager preferenceManager;
+    private PreferenceManager prefManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_invitation_incoming);
 
+        prefManager = new PreferenceManager(getApplicationContext());
+        setCallType();
+        bindUserData();
+
+        ringPhone();
+        vibratePhone();
+
+        setupAcceptIV();
+        setupRejectIV();
+    }
+
+    private void setCallType() {
         TextView incomingTV = findViewById(R.id.incomingTV);
         ImageView callTypeIV = findViewById(R.id.callTypeIV);
         callType = getIntent().getStringExtra(REMOTE_MSG_CALL_TYPE);
-
         if (callType != null) {
             if (callType.equals(INTENT_CALL_TYPE_VIDEO)) {
                 callTypeIV.setImageResource(R.drawable.ic_videocam);
@@ -65,50 +76,76 @@ public class InvitationIncomingActivity extends AppCompatActivity {
                 incomingTV.setText(getString(R.string.incoming_call));
             }
         }
+    }
 
+    private void bindUserData() {
         TextView defaultProfileTV = findViewById(R.id.defaultProfileTV);
         String imageURL = getIntent().getStringExtra(KEY_IMAGE_URL);
         TextView usernameTV = findViewById(R.id.usernameTV);
         String username = getIntent().getStringExtra(KEY_USERNAME);
-
         if (username != null && imageURL != null) {
-            if (imageURL.equals(KEY_IMAGE_URL_DEFAULT))
-                defaultProfileTV.setText(username.substring(0,1));
-            else {
+            if (username.contains("\n")) {
                 defaultProfileTV.setVisibility(View.GONE);
-                ImageView profileIV = findViewById(R.id.profileIV);
-                profileIV.setVisibility(View.VISIBLE);
-                Glide.with(InvitationIncomingActivity.this)
-                        .load(imageURL)
-                        .circleCrop()
-                        .into(profileIV);
+                findViewById(R.id.groupIV).setVisibility(View.VISIBLE);
+                String[] usernames = username.split("\n");
+                StringBuilder filteredUsernames = new StringBuilder();
+                for (String filteredUsername : usernames) {
+                    if (!filteredUsername.equals(CURRENT_USER.getUserName())) {
+                        filteredUsernames.append(filteredUsername).append("\n");
+                    }
+                }
+                usernameTV.setText(filteredUsernames.toString());
+            } else {
+                if (imageURL.equals(KEY_IMAGE_URL_DEFAULT)) {
+                    defaultProfileTV.setText(username.substring(0, 1));
+                } else {
+                    defaultProfileTV.setVisibility(View.GONE);
+                    ImageView profileIV = findViewById(R.id.profileIV);
+                    profileIV.setVisibility(View.VISIBLE);
+                    Glide.with(InvitationIncomingActivity.this)
+                            .load(imageURL)
+                            .circleCrop()
+                            .into(profileIV);
+                }
+                usernameTV.setText(username);
             }
-            usernameTV.setText(username);
         }
+    }
 
-        preferenceManager = new PreferenceManager(getApplicationContext());
-        ringPhone();
-        vibratePhone();
-
+    private void setupAcceptIV() {
         ImageView acceptIV = findViewById(R.id.acceptIV);
         acceptIV.setOnClickListener(v -> {
             sendInvitationResponse(
                     REMOTE_MSG_INVITATION_ACCEPTED,
                     getIntent().getStringExtra(REMOTE_MSG_INVITER_TOKEN)
             );
-            vibrator.cancel();
-            ringtone.stop();
+            stopRingtone();
+            stopVibrator();
         });
+    }
 
+    private void setupRejectIV() {
         ImageView rejectIV = findViewById(R.id.rejectIV);
         rejectIV.setOnClickListener(v -> {
             sendInvitationResponse(
                     REMOTE_MSG_INVITATION_REJECTED,
                     getIntent().getStringExtra(REMOTE_MSG_INVITER_TOKEN)
             );
-            ringtone.stop();
-            vibrator.cancel();
+            stopRingtone();
+            stopVibrator();
         });
+    }
+
+    private void stopRingtone() {
+        if (ringtone != null) {
+            ringtone.stop();
+        }
+    }
+
+    private void stopVibrator() {
+        if (vibrator != null) {
+            vibrator.cancel();
+        }
     }
 
     private void sendInvitationResponse(String type, String receiverToken) {
@@ -169,7 +206,7 @@ public class InvitationIncomingActivity extends AppCompatActivity {
 
     private void ringPhone() {
         Uri ringtonePath;
-        if (preferenceManager.getSharedPreferences().contains(CHANNEL_CALLS_RINGTONE_URI)) {
+        if (prefManager.getSharedPreferences().contains(CHANNEL_CALLS_RINGTONE_URI)) {
             ringtonePath = Uri.parse(new PreferenceManager(InvitationIncomingActivity.this).getString(CHANNEL_CALLS_RINGTONE_URI));
         } else {
             ringtonePath = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
@@ -188,8 +225,8 @@ public class InvitationIncomingActivity extends AppCompatActivity {
 
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         long milis = 250;
-        if (preferenceManager.getSharedPreferences().contains(CHANNEL_CALLS_VIBRATION)) {
-            switch (preferenceManager.getString(CHANNEL_CALLS_VIBRATION)) {
+        if (prefManager.getSharedPreferences().contains(CHANNEL_CALLS_VIBRATION)) {
+            switch (prefManager.getString(CHANNEL_CALLS_VIBRATION)) {
                 case PREF_DEFAULT:
                     milis = 250;
                     break;
@@ -214,15 +251,16 @@ public class InvitationIncomingActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String type = intent.getStringExtra(REMOTE_MSG_INVITATION_RESPONSE);
-            if (type != null && type.equals(REMOTE_MSG_INVITATION_CANCELLED))
+            if (type != null && type.equals(REMOTE_MSG_INVITATION_CANCELLED)) {
                 cancelCallResult(getString(R.string.cancelled));
+            }
         }
     };
 
     private void cancelCallResult(String toastMessage) {
         Toast.makeText(InvitationIncomingActivity.this, toastMessage, Toast.LENGTH_SHORT).show();
-        ringtone.stop();
-        vibrator.cancel();
+        stopRingtone();
+        stopVibrator();
         finish();
     }
 

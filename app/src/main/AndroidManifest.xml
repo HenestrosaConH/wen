@@ -37,6 +37,7 @@
         <activity
             android:name=".activities.OnboardingActivity"
             android:screenOrientation="portrait"
+            android:theme="@style/Theme.Wen.SplashScreen"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -52,23 +53,17 @@
             android:screenOrientation="portrait" />
         <activity android:name=".activities.SearchActivity"
             android:theme="@style/Theme.Wen.Toolbar">
-            <!--<intent-filter>
-                <action android:name="android.intent.action.SEARCH" />
-            </intent-filter>
-            <meta-data android:name="android.app.searchable"
-                android:resource="@xml/searchable_main"/>-->
         </activity>
         <activity
             android:name=".activities.MainActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.Wen.SplashScreen">
-            <!--<meta-data android:name="android.app.default_searchable"
-                android:value=".activities.SearchableActivity" />-->
+            android:theme="@style/Theme.Wen">
         </activity>
 
         <activity
             android:name=".activities.ChatActivity"
             android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateHidden|adjustResize"
             android:theme="@style/Theme.Wen.ChatAppBar" />
         <activity
             android:name=".activities.SettingsActivity"
@@ -83,7 +78,7 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Wen.Toolbar" />
         <activity
-            android:name=".activities.UsersListCallsActivityOn"
+            android:name=".activities.UsersListCallsActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Wen.Toolbar" />
 

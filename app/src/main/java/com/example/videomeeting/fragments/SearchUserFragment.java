@@ -1,6 +1,7 @@
 package com.example.videomeeting.fragments;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,9 +27,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.example.videomeeting.utils.Constants.BUNDLE_SEARCH;
 import static com.example.videomeeting.utils.Constants.CURRENT_USER;
-import static com.example.videomeeting.utils.Constants.KEY_COLLECTION_USER;
+import static com.example.videomeeting.utils.Constants.KEY_COLLECTION_USERS;
 
 public class SearchUserFragment extends Fragment {
 
@@ -39,7 +39,7 @@ public class SearchUserFragment extends Fragment {
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_search_message, container, false);
+        View view = inflater.inflate(R.layout.fragment_search_user, container, false);
         notFoundTV = view.findViewById(R.id.notFoundTV);
         searchTipCV = view.findViewById(R.id.searchTipCV);
         refreshRV(view);
@@ -48,7 +48,7 @@ public class SearchUserFragment extends Fragment {
 
     private void refreshRV(View view) {
         userMap = new HashMap<>();
-        searchUserRV = view.findViewById(R.id.searchMessageRV);
+        searchUserRV = view.findViewById(R.id.searchUserRV);
         searchUserRV.setHasFixedSize(true);
         searchUserRV.setLayoutManager(new LinearLayoutManager(getContext()));
     }
@@ -68,18 +68,20 @@ public class SearchUserFragment extends Fragment {
 
         if (isUserNameValid) {
             FirebaseDatabase.getInstance().getReference()
-                    .child(KEY_COLLECTION_USER)
+                    .child(KEY_COLLECTION_USERS)
                     .addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    User searchedUser;
                     for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                        User user = snapshot.getValue(User.class);
-                        if (user.getUserName().equals(CURRENT_USER.getUserName())) continue;
-                        if (user.getUserName().toLowerCase().startsWith(finalQuery.toLowerCase())) {
-                            userMap.put(user.getId(), user);
+                        searchedUser = snapshot.getValue(User.class);
+                        searchedUser.setId(snapshot.getKey());
+                        if (searchedUser.getUserName().equals(CURRENT_USER.getUserName())) continue;
+                        if (searchedUser.getUserName().toLowerCase().startsWith(finalQuery.toLowerCase())) {
+                            userMap.put(searchedUser.getId(), searchedUser);
                         }
-                        checkList();
                     }
+                    checkList();
                 }
 
                 @Override

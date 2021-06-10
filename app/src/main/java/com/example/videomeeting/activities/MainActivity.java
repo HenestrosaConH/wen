@@ -1,10 +1,13 @@
 package com.example.videomeeting.activities;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.Toast;
@@ -44,7 +47,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setTheme(R.style.Theme_Wen);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -56,8 +58,9 @@ public class MainActivity extends AppCompatActivity {
         setupViewPager();
 
         FirebaseInstanceId.getInstance().getInstanceId().addOnCompleteListener(task -> {
-            if (task.isSuccessful() && task.getResult() != null)
+            if (task.isSuccessful() && task.getResult() != null) {
                 sendFCMTokenToDB(task.getResult().getToken());
+            }
         });
     }
 
@@ -104,18 +107,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setCurrentUserID() {
-        FIREBASE_USER = FirebaseAuth.getInstance().getCurrentUser();
-        FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_USER)
-                .child(FIREBASE_USER.getUid())
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        CURRENT_USER = snapshot.getValue(User.class);
-                    }
+        if (FIREBASE_USER == null || CURRENT_USER == null) {
+            FIREBASE_USER = FirebaseAuth.getInstance().getCurrentUser();
+            FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_USERS)
+                    .child(FIREBASE_USER.getUid())
+                    .addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            CURRENT_USER = snapshot.getValue(User.class);
+                        }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) { }
-                });
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                        }
+                    });
+        }
     }
 
     private void checkPreferences() {
@@ -135,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void sendFCMTokenToDB(String token) {
-        FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_USER)
+        FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_USERS)
                 .child(FIREBASE_USER.getUid())
                 .child(KEY_FCM_TOKEN)
                 .setValue(token)
@@ -145,13 +151,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void signOut() {
-        FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_USER)
+        FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_USERS)
                 .child(FIREBASE_USER.getUid())
                 .child(KEY_FCM_TOKEN)
                 .removeValue()
                 .addOnSuccessListener(aVoid -> {
-                    //TODO: The line below might need some rework because in the current state, it would delete ALL the preferences
-                    preferenceManager.clearPreferences();
+                    preferenceManager.clearPrefsForSignOut();
+                    CURRENT_USER = null;
+                    FIREBASE_USER = null;
                     startActivity(new Intent(getApplicationContext(), SendOTPActivity.class));
                     finish();
                 })
@@ -209,12 +216,6 @@ public class MainActivity extends AppCompatActivity {
                         .create().show();
             }
         }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        checkPreferences();
     }
 
     @Override

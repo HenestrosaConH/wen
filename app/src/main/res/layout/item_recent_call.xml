@@ -19,6 +19,21 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <ImageView
+        android:id="@+id/groupIV"
+        android:layout_width="55dp"
+        android:layout_height="55dp"
+        android:layout_marginStart="6dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:padding="10dp"
+        android:visibility="gone"
+        android:src="@drawable/ic_group"
+        android:background="@drawable/background_user_icon"
+        android:contentDescription="@string/app_name"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <TextView
         android:id="@+id/defaultProfileTV"
         android:layout_width="55dp"
@@ -80,13 +95,11 @@
         app:layout_constraintTop_toTopOf="@+id/profileAux" />
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/cardView"
+        android:id="@+id/statusCV"
         android:layout_width="10dp"
         android:layout_height="10dp"
-        android:layout_marginEnd="1dp"
-        android:layout_marginBottom="17dp"
         app:cardCornerRadius="10dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/profileAux"
         app:layout_constraintEnd_toEndOf="@id/profileAux">
 
         <ImageView
@@ -204,7 +217,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:srcCompat="@drawable/ic_call"
-        app:tint="@color/colorPrimary" />
+        app:tint="@color/colorAccent" />
 
     <ImageView
         android:id="@+id/videocallIV"
@@ -219,7 +232,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:srcCompat="@drawable/ic_videocam"
-        app:tint="@color/colorPrimary" />
+        app:tint="@color/colorAccent" />
 
     <View
         android:id="@+id/callTypeAux"

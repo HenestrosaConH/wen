@@ -52,6 +52,21 @@
             android:textSize="@dimen/_90ssp"/>
 
         <ImageView
+            android:id="@+id/groupIV"
+            android:layout_width="@dimen/_160sdp"
+            android:layout_height="@dimen/_160sdp"
+            android:background="@drawable/background_meeting_invitation_user_icon"
+            android:fontFamily="@font/ubuntu_bold"
+            android:src="@drawable/ic_group"
+            android:padding="30dp"
+            android:gravity="center"
+            android:visibility="gone"
+            android:includeFontPadding="false"
+            android:textAllCaps="true"
+            android:textSize="@dimen/_90ssp"
+            tools:tint="@color/colorAccent"/>
+
+        <ImageView
             android:id="@+id/profileIV"
             android:layout_width="@dimen/_160sdp"
             android:layout_height="@dimen/_160sdp"
@@ -67,7 +82,7 @@
             android:layout_marginTop="@dimen/_20sdp"
             android:layout_marginStart="30dp"
             android:layout_marginEnd="30dp"
-            android:maxLines="2"
+            android:text="gdfffffffs"
             android:fontFamily="@font/ubuntu_bold"
             android:gravity="center"
             android:includeFontPadding="false"

@@ -91,7 +91,7 @@ public class UsersListChatsAdapter extends RecyclerView.Adapter<UsersListChatsAd
         });
 
         profileDG.findViewById(R.id.callLY).setOnClickListener(v -> callsListener.initiateCall(user, context));
-        profileDG.findViewById(R.id.videocallLY).setOnClickListener(v -> callsListener.initiateVideocall(user, context));
+        profileDG.findViewById(R.id.videocallLY).setOnClickListener(v -> callsListener.initiateVideoCall(user, context));
 
         profileDG.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         profileDG.show();

@@ -22,7 +22,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
 import com.example.videomeeting.R;
 import com.example.videomeeting.models.User;
-import com.example.videomeeting.utils.Constants;
 import com.example.videomeeting.utils.PreferenceManager;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -38,21 +37,22 @@ import com.google.firebase.storage.UploadTask;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
+import static com.example.videomeeting.utils.Constants.*;
 
 public class SetupProfileActivity extends AppCompatActivity {
 
+    private PreferenceManager prefManager;
     //Firebase
-    private DatabaseReference usernamesReference;
+    private final DatabaseReference usernamesRef = FirebaseDatabase.getInstance().getReference()
+            .child(KEY_COLLECTION_USERNAMES);
     private FirebaseUser firebaseUser;
-    private User user;
     private String username;
     private boolean isUserNameValid = false;
     //ProfilePic
     private static final int ASK_FOR_IMAGE = 1;
     private Uri imageUri;
     private StorageTask<UploadTask.TaskSnapshot> uploadTask;
-    private String imageURL = Constants.KEY_IMAGE_URL_DEFAULT;
+    private String imageURL = KEY_IMAGE_URL_DEFAULT;
     private ImageView profileIV;
 
     public SetupProfileActivity() {}
@@ -60,25 +60,30 @@ public class SetupProfileActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        prefManager = new PreferenceManager(getApplicationContext());
+        isProfSetup();
+        setContentView(R.layout.activity_setup_profile);
 
-        PreferenceManager preferenceManager = new PreferenceManager(getApplicationContext());
-        if (!preferenceManager.getBoolean(Constants.PREF_NEEDS_TO_SETUP_PROFILE)) {
+        firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        setupUserNameET();
+        setupProfileIV();
+        checkData();
+    }
+
+    private void isProfSetup() {
+        if (!prefManager.getBoolean(PREF_NEEDS_TO_SETUP_PROFILE)) {
             Intent i = new Intent(SetupProfileActivity.this, MainActivity.class);
             startActivity(i);
             finish();
         }
+    }
 
-        setContentView(R.layout.activity_setup_profile);
+    private void setupProfileIV() {
+        profileIV = findViewById(R.id.profileIV);
+        profileIV.setOnClickListener(view -> pickImage());
+    }
 
-        firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        usernamesReference = FirebaseDatabase.getInstance().getReference()
-                .child(Constants.KEY_COLLECTION_USERNAME);
-        /*
-        usernamesReference = FirebaseDatabase.getInstance()
-                        .getReference(Constants.KEY_COLLECTION_USERNAMES)
-                        .child(Constants.KEY_USERNAME);
-         */
-
+    private void setupUserNameET() {
         EditText usernameET = findViewById(R.id.usernameET);
         usernameET.addTextChangedListener(new TextWatcher()  {
             @Override
@@ -90,70 +95,75 @@ public class SetupProfileActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 username = usernameET.getText().toString().trim();
-                if (username.isEmpty()) {
-                    usernameET.setError(getString(R.string.enter_user_name));
-                } else if (username.length() < 4) {
-                    usernameET.setError(getString(R.string.username_too_short));
-                    isUserNameValid = false;
-                } else if (!username.matches("^[a-zA-Z0-9]+$")) {
-                    usernameET.setError(getString(R.string.only_letter_or_numbers));
-                    isUserNameValid = false;
-                } else {
-                    usernamesReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NotNull DataSnapshot dataSnapshot) {
-                            if (dataSnapshot.hasChild(username.toLowerCase())) {
-                                usernameET.setError(getString(R.string.username_already_exists));
-                                isUserNameValid = false;
-                            } else {
-                                Drawable correct = getResources().getDrawable(R.drawable.ic_correct);
-                                correct.setBounds(0, 0, correct.getIntrinsicWidth(), correct.getIntrinsicHeight());
-                                usernameET.setError(getString(R.string.available), correct);
-                                isUserNameValid = true;
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(@NotNull DatabaseError databaseError) { }
-                    });
-                }
+                checkUserName(usernameET);
             }
         });
+    }
 
-        profileIV = findViewById(R.id.profileIV);
-        profileIV.setOnClickListener(view -> pickImage());
+    private void checkUserName(EditText usernameET) {
+        if (username.isEmpty()) {
+            usernameET.setError(getString(R.string.enter_user_name));
+        } else if (username.length() < 4) {
+            usernameET.setError(getString(R.string.username_too_short));
+            isUserNameValid = false;
+        } else if (!username.matches("^[a-zA-Z0-9]+$")) {
+            usernameET.setError(getString(R.string.only_letter_or_numbers));
+            isUserNameValid = false;
+        } else {
+            usernamesRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NotNull DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.hasChild(username.toLowerCase())) {
+                        usernameET.setError(getString(R.string.username_already_exists));
+                        isUserNameValid = false;
+                    } else {
+                        Drawable correct = getResources().getDrawable(R.drawable.ic_correct);
+                        correct.setBounds(0, 0, correct.getIntrinsicWidth(), correct.getIntrinsicHeight());
+                        usernameET.setError(getString(R.string.available), correct);
+                        isUserNameValid = true;
+                    }
+                }
 
+                @Override
+                public void onCancelled(@NotNull DatabaseError databaseError) { }
+            });
+        }
+    }
+
+    private void checkData() {
         ProgressBar setupProfilePB = findViewById(R.id.setupProfilePB);
         Button setupProfileBT = findViewById(R.id.setupProfileBT);
         setupProfileBT.setOnClickListener(v -> {
             if (isUserNameValid) {
-                setupProfilePB.setVisibility(View.VISIBLE);
-                setupProfileBT.setVisibility(View.INVISIBLE);
-
-                user = new User(
-                        firebaseUser.getUid(),
-                        username,
-                        preferenceManager.getString(Constants.INTENT_PHONE_NUMBER),
-                        "",
-                        imageURL
-                );
-
-                usernamesReference.child(username.toLowerCase()).setValue(Constants.KEY_USERNAME_STATE_ORIGINAL);
-
-                FirebaseDatabase.getInstance()
-                        .getReference(Constants.KEY_COLLECTION_USER)
-                        .child(firebaseUser.getUid())
-                        .setValue(user, (error, ref) -> {
-                            Intent intent = new Intent(SetupProfileActivity.this, MainActivity.class);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            preferenceManager.putBoolean(Constants.PREF_IS_SIGNED_IN, true);
-                            preferenceManager.putBoolean(Constants.PREF_NEEDS_TO_SETUP_PROFILE, false);
-                            startActivity(intent);
-                        });
+                sendDataToDB(setupProfilePB, setupProfileBT);
             } else {
                 Toast.makeText(SetupProfileActivity.this, getString(R.string.user_name_invalid), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void sendDataToDB(ProgressBar setupProfilePB, Button setupProfileBT) {
+        setupProfilePB.setVisibility(View.VISIBLE);
+        setupProfileBT.setVisibility(View.INVISIBLE);
+
+        User user = new User(
+                username,
+                "",
+                imageURL
+        );
+
+        usernamesRef.child(username.toLowerCase()).setValue(true);
+
+        FirebaseDatabase.getInstance()
+                .getReference(KEY_COLLECTION_USERS)
+                .child(firebaseUser.getUid())
+                .setValue(user, (error, ref) -> {
+                    Intent intent = new Intent(SetupProfileActivity.this, MainActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    prefManager.putBoolean(PREF_IS_SIGNED_IN, true);
+                    prefManager.putBoolean(PREF_NEEDS_TO_SETUP_PROFILE, false);
+                    startActivity(intent);
+                });
     }
 
     private void pickImage() {
@@ -175,12 +185,12 @@ public class SetupProfileActivity extends AppCompatActivity {
         progressDialog.show();
 
         if (imageUri != null) {
-            final StorageReference fileReference =
-                    FirebaseStorage.getInstance().getReference(Constants.KEY_STORAGE_PROFILE_PICTURE).child(System.currentTimeMillis() + "." + getFileExtension(imageUri));
-            uploadTask = fileReference.putFile(imageUri);
+            final StorageReference fileRef =
+                    FirebaseStorage.getInstance().getReference(KEY_STORAGE_PROFILE_PICTURES).child(System.currentTimeMillis() + "." + getFileExtension(imageUri));
+            uploadTask = fileRef.putFile(imageUri);
             uploadTask.continueWithTask(task -> {
-                if (!task.isSuccessful()) throw Objects.requireNonNull(task.getException());
-                return fileReference.getDownloadUrl();
+                if (!task.isSuccessful()) throw task.getException();
+                return fileRef.getDownloadUrl();
             }).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     Uri downloadUri = task.getResult();
@@ -188,9 +198,9 @@ public class SetupProfileActivity extends AppCompatActivity {
                         imageURL = downloadUri.toString();
                     }
 
-                    DatabaseReference imageReference = FirebaseDatabase.getInstance().getReference(Constants.KEY_COLLECTION_USER);
-                    imageReference.child(firebaseUser.getUid())
-                            .child(Constants.KEY_IMAGE_URL)
+                    FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_USERS)
+                            .child(firebaseUser.getUid())
+                            .child(KEY_IMAGE_URL)
                             .setValue(imageURL)
                             .addOnCompleteListener(task1 -> {
                                 if (task1.isSuccessful()) {

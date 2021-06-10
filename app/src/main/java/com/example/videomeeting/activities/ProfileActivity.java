@@ -23,7 +23,6 @@ import androidx.core.content.ContextCompat;
 
 import com.bumptech.glide.Glide;
 import com.example.videomeeting.R;
-import com.example.videomeeting.utils.Constants;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -36,7 +35,7 @@ import com.google.firebase.storage.UploadTask;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
+import static com.example.videomeeting.utils.Constants.*;
 
 public class ProfileActivity extends AppCompatActivity {
 
@@ -44,17 +43,18 @@ public class ProfileActivity extends AppCompatActivity {
     private static final int ASK_FOR_IMAGE = 1;
     private Uri imageUri;
     private StorageTask<UploadTask.TaskSnapshot> uploadTask;
-    private String imageURL = Constants.CURRENT_USER.getImageURL();
-    private StorageReference fileReference;
+    private String imageURL = CURRENT_USER.getImageURL();
+    private StorageReference fileRef;
     private ImageView profileIV;
     private ImageView defaultProfileIV;
     //User parameters
-    private final DatabaseReference userNamesReference = FirebaseDatabase.getInstance().getReference()
-            .child(Constants.KEY_COLLECTION_USERNAME);
-    private String username = Constants.CURRENT_USER.getUserName();
-    private String about = Constants.CURRENT_USER.getAbout();
+    private final DatabaseReference usernamesRef = FirebaseDatabase.getInstance().getReference()
+            .child(KEY_COLLECTION_USERNAMES);
+    private String username = CURRENT_USER.getUserName();
+    private String about = CURRENT_USER.getAbout();
     private boolean isUserNameValid = true;
-    private String isLastSeenEnabled = Constants.KEY_IS_LAST_SEEN_ENABLED;
+    private String lastSeenStatus = KEY_IS_LAST_SEEN_STATUS;
+    private TextView lastSeenTV;
 
     public ProfileActivity() {}
 
@@ -64,17 +64,21 @@ public class ProfileActivity extends AppCompatActivity {
         setContentView(R.layout.activity_profile);
 
         setTitle(getString(R.string.profile));
-        Objects.requireNonNull(ProfileActivity.this.getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+        ProfileActivity.this.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        profileIV = findViewById(R.id.profileIV);
-        profileIV.setOnClickListener(view -> pickImage());
-        defaultProfileIV = findViewById(R.id.defaultProfileIV);
-        defaultProfileIV.setOnClickListener(view -> pickImage());
-        bindProfileIV();
+        setupProfilePic();
+        setupUserName();
+        setupAbout();
+        setupPhone();
 
+        loadLastSeen();
+        setClickListeners();
+    }
+
+    private void setupUserName() {
         EditText usernameET = findViewById(R.id.usernameET);
-        username = Constants.CURRENT_USER.getUserName();
-        usernameET.setText(Constants.CURRENT_USER.getUserName());
+        username = CURRENT_USER.getUserName();
+        usernameET.setText(CURRENT_USER.getUserName());
         usernameET.addTextChangedListener(new TextWatcher()  {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) { }
@@ -85,45 +89,51 @@ public class ProfileActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s)  {
                 username = usernameET.getText().toString().trim();
-                if (username.isEmpty()) {
-                    usernameET.setError(getString(R.string.enter_user_name));
-                    isUserNameValid = false;
-                } else if (username.length() < 4) {
-                    usernameET.setError(getString(R.string.username_too_short));
-                    isUserNameValid = false;
-                } else if (!username.matches("^[a-zA-Z0-9]+$")) {
-                    usernameET.setError(getString(R.string.only_letter_or_numbers));
-                    isUserNameValid = false;
-                } else {
-                    userNamesReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NotNull DataSnapshot dataSnapshot) {
-                            if (dataSnapshot.hasChild(username.toLowerCase())) {
-                                if (Constants.CURRENT_USER.getUserName().equals(username)) {
-                                    isUserNameValid = true;
-                                } else {
-                                    usernameET.setError(getString(R.string.username_already_exists));
-                                    isUserNameValid = false;
-                                }
-                            } else {
-                                Drawable correct = ContextCompat.getDrawable(ProfileActivity.this, R.drawable.ic_correct);
-                                correct.setBounds(0, 0, correct.getIntrinsicWidth(), correct.getIntrinsicHeight());
-                                usernameET.setError(getString(R.string.available), correct);
-                                isUserNameValid = true;
-                            }
-                        }
-                        @Override
-                        public void onCancelled(@NotNull DatabaseError databaseError) { }
-                    });
-                }
+                checkUserName(usernameET);
             }
         });
+    }
 
+    private void checkUserName(EditText usernameET) {
+        if (username.isEmpty()) {
+            usernameET.setError(getString(R.string.enter_user_name));
+            isUserNameValid = false;
+        } else if (username.length() < 4) {
+            usernameET.setError(getString(R.string.username_too_short));
+            isUserNameValid = false;
+        } else if (!username.matches("^[a-zA-Z0-9]+$")) {
+            usernameET.setError(getString(R.string.only_letter_or_numbers));
+            isUserNameValid = false;
+        } else {
+            usernamesRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NotNull DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.hasChild(username.toLowerCase())) {
+                        if (CURRENT_USER.getUserName().equals(username)) {
+                            isUserNameValid = true;
+                        } else {
+                            usernameET.setError(getString(R.string.username_already_exists));
+                            isUserNameValid = false;
+                        }
+                    } else {
+                        Drawable correct = ContextCompat.getDrawable(ProfileActivity.this, R.drawable.ic_correct);
+                        correct.setBounds(0, 0, correct.getIntrinsicWidth(), correct.getIntrinsicHeight());
+                        usernameET.setError(getString(R.string.available), correct);
+                        isUserNameValid = true;
+                    }
+                }
+                @Override
+                public void onCancelled(@NotNull DatabaseError databaseError) { }
+            });
+        }
+    }
+
+    private void setupAbout() {
         TextView countdownTV = findViewById(R.id.countdownTV);
         EditText aboutET = findViewById(R.id.aboutET);
-        if (Constants.CURRENT_USER.getAbout() != null) {
-            aboutET.setText(Constants.CURRENT_USER.getAbout());
-            countdownTV.setText(String.valueOf(100 - Constants.CURRENT_USER.getAbout().length()));
+        if (CURRENT_USER.getAbout() != null) {
+            aboutET.setText(CURRENT_USER.getAbout());
+            countdownTV.setText(String.valueOf(100 - CURRENT_USER.getAbout().length()));
         }
 
         aboutET.addTextChangedListener(new TextWatcher()  {
@@ -154,17 +164,21 @@ public class ProfileActivity extends AppCompatActivity {
                 about = aboutET.getText().toString().trim();
             }
         });
+    }
 
+    private void setupPhone() {
         TextView phoneTV = findViewById(R.id.phoneTV);
-        phoneTV.setText(Constants.CURRENT_USER.getPhoneNumber());
+        phoneTV.setText(FIREBASE_USER.getPhoneNumber());
         findViewById(R.id.phoneLY).setOnClickListener(v -> Toast.makeText(this, getString(R.string.cannot_edit_the_number), Toast.LENGTH_SHORT).show());
+    }
 
-        TextView lastSeenTV = findViewById(R.id.lastSeenTV);
-        loadLastSeen(lastSeenTV);
+    private void setClickListeners() {
         findViewById(R.id.updateIV).setOnClickListener(view -> pickImage());
         findViewById(R.id.deleteIV).setOnClickListener(view -> deleteProfilePic());
         findViewById(R.id.lastSeenLY).setOnClickListener(v -> setLastSeen(lastSeenTV));
         findViewById(R.id.editBT).setOnClickListener(v -> saveChanges());
+        profileIV.setOnClickListener(view -> pickImage());
+        defaultProfileIV.setOnClickListener(view -> pickImage());
     }
 
     @Override
@@ -189,12 +203,15 @@ public class ProfileActivity extends AppCompatActivity {
                         super.onBackPressed();
                     })
                     .create().show();
-        } else
+        } else {
             super.onBackPressed();
+        }
     }
 
-    private void bindProfileIV() {
-        if (imageURL.equals(Constants.KEY_IMAGE_URL_DEFAULT)) {
+    private void setupProfilePic() {
+        profileIV = findViewById(R.id.profileIV);
+        defaultProfileIV = findViewById(R.id.defaultProfileIV);
+        if (imageURL.equals(KEY_IMAGE_URL_DEFAULT)) {
             defaultProfileIV.setVisibility(View.VISIBLE);
             profileIV.setVisibility(View.GONE);
         } else {
@@ -210,19 +227,19 @@ public class ProfileActivity extends AppCompatActivity {
         alertBuilder.setTitle(R.string.sure_)
                 .setMessage(R.string.profile_image_will_be_removed)
                 .setPositiveButton(android.R.string.ok, (dialog, which) -> {
-                    if (!imageURL.equals(Constants.KEY_IMAGE_URL_DEFAULT)) {
+                    if (!imageURL.equals(KEY_IMAGE_URL_DEFAULT)) {
                         //Deleting file from the Firebase Storage
                         FirebaseStorage.getInstance()
                                 .getReferenceFromUrl(imageURL)
                                 .delete();
                         //Deleting image URL from user row
-                        imageURL = Constants.KEY_IMAGE_URL_DEFAULT;
-                        FirebaseDatabase.getInstance().getReference(Constants.KEY_COLLECTION_USER)
-                                .child(Constants.FIREBASE_USER.getUid())
-                                .child(Constants.KEY_IMAGE_URL)
+                        imageURL = KEY_IMAGE_URL_DEFAULT;
+                        FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_USERS)
+                                .child(FIREBASE_USER.getUid())
+                                .child(KEY_IMAGE_URL)
                                 .setValue(imageURL);
 
-                        Constants.CURRENT_USER.setImageURL(imageURL);
+                        CURRENT_USER.setImageURL(imageURL);
                     }
                     profileIV.setVisibility(View.GONE);
                     defaultProfileIV.setVisibility(View.VISIBLE);
@@ -231,11 +248,12 @@ public class ProfileActivity extends AppCompatActivity {
                 .create().show();
     }
 
-    private void loadLastSeen(TextView lastSeenTV) {
-        isLastSeenEnabled = Constants.CURRENT_USER.isLastSeenEnabled();
-        if (isLastSeenEnabled.equals(Constants.KEY_LAST_SEEN_TRUE))
+    private void loadLastSeen() {
+        lastSeenTV = findViewById(R.id.lastSeenTV);
+        lastSeenStatus = CURRENT_USER.getLastSeenStatus();
+        if (lastSeenStatus.equals(KEY_LAST_SEEN_ALL))
             lastSeenTV.setText(R.string.everyone);
-        else if (isLastSeenEnabled.equals(Constants.KEY_LAST_SEEN_CONTACTS))
+        else if (lastSeenStatus.equals(KEY_LAST_SEEN_CONTACTS))
             lastSeenTV.setText(R.string.my_contacts);
         else
             lastSeenTV.setText(R.string.nobody);
@@ -249,9 +267,9 @@ public class ProfileActivity extends AppCompatActivity {
         };
 
         int checkedItem = 0; //Everyone by default
-        if (isLastSeenEnabled.equals(Constants.KEY_LAST_SEEN_CONTACTS))
+        if (lastSeenStatus.equals(KEY_LAST_SEEN_CONTACTS))
             checkedItem = 1;
-        else if (isLastSeenEnabled.equals(Constants.KEY_LAST_SEEN_FALSE))
+        else if (lastSeenStatus.equals(KEY_LAST_SEEN_NONE))
             checkedItem = 2;
 
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(ProfileActivity.this);
@@ -259,15 +277,15 @@ public class ProfileActivity extends AppCompatActivity {
                 .setSingleChoiceItems(items, checkedItem, (dialog, which) -> {
                     switch (which) {
                         case 0:
-                            isLastSeenEnabled = Constants.KEY_LAST_SEEN_TRUE;
+                            lastSeenStatus = KEY_LAST_SEEN_ALL;
                             lastSeenTV.setText(getString(R.string.everyone));
                             break;
                         case 1:
-                            isLastSeenEnabled = Constants.KEY_LAST_SEEN_CONTACTS;
+                            lastSeenStatus = KEY_LAST_SEEN_CONTACTS;
                             lastSeenTV.setText(getString(R.string.my_contacts));
                             break;
                         case 2:
-                            isLastSeenEnabled = Constants.KEY_LAST_SEEN_FALSE;
+                            lastSeenStatus = KEY_LAST_SEEN_NONE;
                             lastSeenTV.setText(getString(R.string.nobody));
                             break;
                     }
@@ -276,42 +294,42 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void saveChanges() {
         if (isUserNameValid) {
-            DatabaseReference userReference = FirebaseDatabase.getInstance().getReference(Constants.KEY_COLLECTION_USER)
-                    .child(Constants.FIREBASE_USER.getUid());
+            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference(KEY_COLLECTION_USERS)
+                    .child(FIREBASE_USER.getUid());
 
-            if (!Constants.CURRENT_USER.getImageURL().equals(imageURL)) {
-                if (!Constants.CURRENT_USER.getImageURL().equals(Constants.KEY_IMAGE_URL_DEFAULT))
+            if (!CURRENT_USER.getImageURL().equals(imageURL)) {
+                if (!CURRENT_USER.getImageURL().equals(KEY_IMAGE_URL_DEFAULT))
                     FirebaseStorage.getInstance()
-                            .getReferenceFromUrl(Constants.CURRENT_USER.getImageURL())
+                            .getReferenceFromUrl(CURRENT_USER.getImageURL())
                             .delete();
 
-                userReference.child(Constants.KEY_IMAGE_URL)
+                userRef.child(KEY_IMAGE_URL)
                         .setValue(imageURL);
             }
 
-            if (!Constants.CURRENT_USER.getUserName().equals(username)) {
-                userNamesReference.child(Constants.CURRENT_USER.getUserName().toLowerCase()).removeValue();
-                userNamesReference.child(username.toLowerCase()).setValue(Constants.KEY_USERNAME_STATE_CHANGED);
-                userReference.child(Constants.KEY_USERNAME).setValue(username);
+            if (!CURRENT_USER.getUserName().equals(username)) {
+                usernamesRef.child(CURRENT_USER.getUserName().toLowerCase()).removeValue();
+                usernamesRef.child(username.toLowerCase()).setValue(false);
+                userRef.child(KEY_USERNAME).setValue(username);
             }
 
-            if (Constants.CURRENT_USER.getAbout() == null ||
-                    !Constants.CURRENT_USER.getAbout().equals(about))
-                userReference.child(Constants.KEY_ABOUT)
+            if (CURRENT_USER.getAbout() == null ||
+                    !CURRENT_USER.getAbout().equals(about))
+                userRef.child(KEY_ABOUT)
                         .setValue(about);
 
-            if (!Constants.CURRENT_USER.isLastSeenEnabled().equals(isLastSeenEnabled))
-                userReference.child(Constants.KEY_IS_LAST_SEEN_ENABLED)
-                        .setValue(isLastSeenEnabled);
+            if (!CURRENT_USER.getLastSeenStatus().equals(lastSeenStatus))
+                userRef.child(KEY_IS_LAST_SEEN_STATUS)
+                        .setValue(lastSeenStatus);
 
             if (haveChangesBeenMade()) {
-                userReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                userRef.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        Constants.CURRENT_USER.setImageURL(imageURL);
-                        Constants.CURRENT_USER.setUserName(username);
-                        Constants.CURRENT_USER.setAbout(about);
-                        Constants.CURRENT_USER.setLastSeenEnabled(isLastSeenEnabled);
+                        CURRENT_USER.setImageURL(imageURL);
+                        CURRENT_USER.setUserName(username);
+                        CURRENT_USER.setAbout(about);
+                        CURRENT_USER.setLastSeenStatus(lastSeenStatus);
                         Toast.makeText(ProfileActivity.this, getString(R.string.data_updated_successfully), Toast.LENGTH_SHORT).show();
                     }
 
@@ -327,10 +345,10 @@ public class ProfileActivity extends AppCompatActivity {
 
     private boolean haveChangesBeenMade() {
         if (isUserNameValid) {
-            return !Constants.CURRENT_USER.getImageURL().equals(imageURL) ||
-                    !Constants.CURRENT_USER.getUserName().equals(username) ||
-                    !Constants.CURRENT_USER.isLastSeenEnabled().equals(isLastSeenEnabled) ||
-                    (Constants.CURRENT_USER.getAbout() != null && !Constants.CURRENT_USER.getAbout().equals(about));
+            return !CURRENT_USER.getImageURL().equals(imageURL) ||
+                    !CURRENT_USER.getUserName().equals(username) ||
+                    !CURRENT_USER.getLastSeenStatus().equals(lastSeenStatus) ||
+                    (CURRENT_USER.getAbout() != null && !CURRENT_USER.getAbout().equals(about));
         } else
             return false;
     }
@@ -354,18 +372,18 @@ public class ProfileActivity extends AppCompatActivity {
         progressDialog.show();
 
         if (imageUri != null) {
-            fileReference =
-                    FirebaseStorage.getInstance().getReference(Constants.KEY_STORAGE_PROFILE_PICTURE)
+            fileRef =
+                    FirebaseStorage.getInstance().getReference(KEY_STORAGE_PROFILE_PICTURES)
                             .child(System.currentTimeMillis() + "." + getFileExtension(imageUri));
-            uploadTask = fileReference.putFile(imageUri);
+            uploadTask = fileRef.putFile(imageUri);
             uploadTask.continueWithTask(task -> {
-                if (!task.isSuccessful()) throw Objects.requireNonNull(task.getException());
-                return fileReference.getDownloadUrl();
+                if (!task.isSuccessful()) throw task.getException();
+                return fileRef.getDownloadUrl();
             }).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     Uri downloadUri = task.getResult();
                     if (downloadUri != null)
-                        if (!imageURL.equals(Constants.KEY_IMAGE_URL_DEFAULT))
+                        if (!imageURL.equals(KEY_IMAGE_URL_DEFAULT))
                             FirebaseStorage.getInstance()
                                     .getReferenceFromUrl(imageURL)
                                     .delete();

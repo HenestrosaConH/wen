@@ -19,7 +19,7 @@
     <string name="incoming_videocall">Video llamada entrante</string>
     <string name="outgoing_videocall">Video llamada saliente</string>
     <string name="outgoing_call">Llamada saliente</string>
-    <string name="battery_optimization_enabled">La optimización de batería está activada</string>
+    <string name="battery_optimization_enabled">La optimización de batería está activada. Por favor, desactívala para evitar la interrupción de servicios corriendo en segundo plano.</string>
     <string name="warning">Aviso</string>
     <string name="dont_ask_again">No volver a preguntar</string>
     <string name="disable">Deshabilitar</string>
@@ -27,7 +27,7 @@
     <string name="send_code">Enviar código</string>
     <string name="sms_verification">Verificación por SMS</string>
     <string name="enter_the_code_sent_to">Introduce el código enviado al</string>
-    <string name="haven_t_received_any_sms">¿No has recivido ningún SMS?</string>
+    <string name="haven_t_received_any_sms">¿No has recibido ningún SMS?</string>
     <string name="resend_it">Reenviarlo</string>
     <string name="profile_info">Info del perfil</string>
     <string name="verify">Verificar</string>
@@ -110,15 +110,15 @@
     <string name="info_notifications">Ten en cuenta que los ajustes de las notificaciones de los chats no funcionarán en Android 8.0 en adelante. Haz click aquí para ir a los ajustes del sistema</string>
     <string name="messages">Mensajes</string>
     <string name="users">Usuarios</string>
-    <string name="welcoming_message_chat"><b>Bienvenido a Wen</b>\n\nEmpieza a chatear buscando a un usuario pulsando el botón de búsqueda de la esquina superior derecha o pulsando el botón flotante, el cual desplegará tu lista de contactos.</string>
-    <string name="welcoming_message_call"><b>Bienvenido a Wen</b>\n\nEmpieza a llamar buscando a un usuario pulsando el botón de búsqueda de la esquina superior derecha o pulsando el botón flotante, el cual desplegará tu lista de contactos.</string>
+    <string name="welcoming_message_chat"><b>Bienvenido a Wen</b>\n\nEmpieza a chatear buscando a un usuario o con alguien de tu lista de contactos.</string>
+    <string name="welcoming_message_call"><b>Bienvenido a Wen</b>\n\nEmpieza a llamar buscando a un usuario o con alguien de tu lista de contactos.</string>
     <string name="group_disabled_tip">Mantén pulsado a los usuarios con los que quieras formar un grupo</string>
     <string name="add_contact">Añadir contacto</string>
     <string name="delete_contact">Eliminar contacto</string>
     <string name="username_too_short">El nombre de usuario tiene que tener, al menos, 4 caracteres</string>
     <string name="no_contacts">No tienes ningún contacto añadido. Puedes buscar a un usuario usando el botón de búsqueda del menú principal.</string>
     <string name="phone_and_warning">Teléfono (solo tú lo puedes ver)</string>
-    <string name="no_messages_yet">No hay mensajes… aún</string>
+    <string name="no_messages_yet">No hay mensajes… aún\n¡Dile algo!</string>
     <string name="search_a_message">Busca un mensaje introduciendo el texto en la barra de arriba</string>
-    <string name="search_a_user">Busca un usuario introduciendo el texto en la barra de arriba</string>
+    <string name="search_a_user">Busca un usuario introduciendo el texto en la barra de arriba. La búsqueda se procesará al introducir 4 o más caracteres.</string>
 </resources>

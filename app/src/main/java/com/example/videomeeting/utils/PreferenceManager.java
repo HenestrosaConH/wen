@@ -3,6 +3,13 @@ package com.example.videomeeting.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import static com.example.videomeeting.utils.Constants.CURRENT_USER;
+import static com.example.videomeeting.utils.Constants.INTENT_PHONE_NUMBER;
+import static com.example.videomeeting.utils.Constants.PREF_HAS_INTRO_BEEN_OPENED;
+import static com.example.videomeeting.utils.Constants.PREF_IS_SIGNED_IN;
+import static com.example.videomeeting.utils.Constants.PREF_NEEDS_TO_SETUP_PROFILE;
+import static com.example.videomeeting.utils.Constants.PREF_SHOULD_SHOW_BATTERY_DIALOG;
+
 public class PreferenceManager {
 
     private final SharedPreferences sharedPreferences;
@@ -45,9 +52,11 @@ public class PreferenceManager {
         return sharedPreferences.getInt(key, 0);
     }
 
-    public void clearPreferences() {
+    public void clearPrefsForSignOut() {
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.clear();
+        editor.remove(PREF_IS_SIGNED_IN);
+        editor.remove(INTENT_PHONE_NUMBER);
+        editor.remove(PREF_NEEDS_TO_SETUP_PROFILE);
         editor.apply();
     }
 }

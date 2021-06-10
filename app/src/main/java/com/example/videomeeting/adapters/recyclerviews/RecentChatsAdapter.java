@@ -20,21 +20,23 @@ import com.bumptech.glide.Glide;
 import com.example.videomeeting.R;
 import com.example.videomeeting.activities.ChatActivity;
 import com.example.videomeeting.listeners.CallsListener;
-import com.example.videomeeting.models.Message;
+import com.example.videomeeting.models.RecentChat;
 import com.example.videomeeting.models.User;
 import com.example.videomeeting.utils.Constants;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
-import java.util.Map;
+
+import static com.example.videomeeting.utils.Constants.FIREBASE_USER;
 
 public class RecentChatsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private final Context context;
-    private final Map<String, User> userMap;
-    private final Map<String, Message> messageMap;
+    private final List<RecentChat> recentChatList;
+    private final List<User> remoteUserList;
     private final CallsListener callsListener = new CallsListener();
     private Dialog profileDG;
 
@@ -42,10 +44,10 @@ public class RecentChatsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     public static final int ITEM_MSG_SENT = 0;
     public static final int ITEM_MSG_RECEIVED = 1;
 
-    public RecentChatsAdapter(Context context, Map<String, User> userMap, Map<String, Message> messageMap) {
+    public RecentChatsAdapter(Context context, List<RecentChat> recentChatList, List<User> remoteUserList) {
         this.context = context;
-        this.userMap = userMap;
-        this.messageMap = messageMap;
+        this.recentChatList = recentChatList;
+        this.remoteUserList = remoteUserList;
     }
 
     @NonNull
@@ -72,15 +74,18 @@ public class RecentChatsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         profileDG = new Dialog(context, R.style.ThemeDialog);
-        String keyUser = (String) userMap.keySet().toArray()[position];
-        String keyMessage = (String) messageMap.keySet().toArray()[position];
-        Log.e("getDate", messageMap.get(keyMessage).getTimestamp());
         switch (holder.getItemViewType()) {
             case ITEM_MSG_SENT:
-                ((RecentChatsAdapter.MessageSentHolder) holder).bind(userMap.get(keyUser), messageMap.get(keyMessage));
+                ((RecentChatsAdapter.MessageSentHolder) holder).bind(
+                        recentChatList.get(position),
+                        remoteUserList.get(position)
+                );
                 break;
             case ITEM_MSG_RECEIVED:
-                ((RecentChatsAdapter.MessageReceivedHolder) holder).bind(userMap.get(keyUser), messageMap.get(keyMessage));
+                ((RecentChatsAdapter.MessageReceivedHolder) holder).bind(
+                        recentChatList.get(position),
+                        remoteUserList.get(position)
+                );
                 break;
             /*case ITEM_MSG_RECEIVED_GROUP:
                 ((MessageReceivedGroupHolder) holder).bind(chat);
@@ -123,7 +128,7 @@ public class RecentChatsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         });
 
         profileDG.findViewById(R.id.callLY).setOnClickListener(v -> callsListener.initiateCall(user, context));
-        profileDG.findViewById(R.id.videocallLY).setOnClickListener(v -> callsListener.initiateVideocall(user, context));
+        profileDG.findViewById(R.id.videocallLY).setOnClickListener(v -> callsListener.initiateVideoCall(user, context));
 
         profileDG.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         profileDG.show();
@@ -131,13 +136,12 @@ public class RecentChatsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
     @Override
     public int getItemCount() {
-        return messageMap.size();
+        return recentChatList.size();
     }
 
     @Override
     public int getItemViewType(int position) {
-        String keyMessage = (String) messageMap.keySet().toArray()[position];
-        if (messageMap.get(keyMessage).getSenderID().equals(Constants.CURRENT_USER.getId())) {
+        if (recentChatList.get(position).getSenderID().equals(FIREBASE_USER.getUid())) {
             return ITEM_MSG_SENT;
         } else {
             return ITEM_MSG_RECEIVED;
@@ -161,48 +165,15 @@ public class RecentChatsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             offlineIV = itemView.findViewById(R.id.offlineIV);
         }
 
-        void bind(User user, Message message) {
-            if (user.getImageURL().equals(Constants.KEY_IMAGE_URL_DEFAULT)) {
-                defaultProfileTV.setVisibility(View.VISIBLE);
-                defaultProfileTV.setText(user.getUserName().substring(0, 1));
-            } else {
-                profileIV.setVisibility(View.VISIBLE);
-                Glide.with(context)
-                        .load(user.getImageURL())
-                        .circleCrop()
-                        .into(profileIV);
-            }
-
-            if (user.getLastSeen().equals(Constants.KEY_LAST_SEEN_ONLINE)) {
-                onlineIV.setVisibility(View.VISIBLE);
-                offlineIV.setVisibility(View.GONE);
-            } else {
-                onlineIV.setVisibility(View.GONE);
-                offlineIV.setVisibility(View.VISIBLE);
-            }
-
-            profileIV.setOnClickListener(v -> showProfileCard(user));
-            defaultProfileTV.setOnClickListener(v -> showProfileCard(user));
-
-            usernameTV.setText(user.getUserName());
-            previewMessageTV.setText(message.getMessage());
-
-            //Date
-            SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-            Date currentDay =  new Date(System.currentTimeMillis());
-            Date chatDay = new Date(Long.parseLong(message.getTimestamp()));
-            if (formatter.format(currentDay).equals(formatter.format(chatDay))) {
-                dateLastMesTV.setText(DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault())
-                        .format(chatDay)
-                );
-            } else {
-                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy", Locale.getDefault());
-                dateLastMesTV.setText(dateFormat.format(Long.valueOf(message.getTimestamp())));
-            }//
-
+        void bind(RecentChat recentChat, User remoteUser) {
+            usernameTV.setText(remoteUser.getUserName());
+            previewMessageTV.setText(recentChat.getLastMessage());
+            bindProfilePic(defaultProfileTV, profileIV, remoteUser);
+            bindUserStatus(onlineIV, offlineIV, remoteUser);
+            bindDate(recentChat, dateLastMesTV);
             itemView.setOnClickListener(v -> {
                 Intent i = new Intent(context, ChatActivity.class);
-                i.putExtra(Constants.INTENT_USER, user);
+                i.putExtra(Constants.INTENT_USER, remoteUser);
                 context.startActivity(i);
             });
 
@@ -258,58 +229,63 @@ public class RecentChatsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             notSeenIV = itemView.findViewById(R.id.notSeenIV);
         }
 
-        void bind(User user, Message message) {
-            if (user.getLastSeen().equals(Constants.KEY_LAST_SEEN_ONLINE)) {
-                onlineIV.setVisibility(View.VISIBLE);
-                offlineIV.setVisibility(View.GONE);
-            } else {
-                onlineIV.setVisibility(View.GONE);
-                offlineIV.setVisibility(View.VISIBLE);
-            }
-
-            if (message.isSeen()) {
+        void bind(RecentChat recentChat, User remoteUser) {
+            bindProfilePic(defaultProfileTV, profileIV, remoteUser);
+            bindUserStatus(onlineIV, offlineIV, remoteUser);
+            bindDate(recentChat, dateLastMesTV);
+            if (recentChat.getSeen()) {
                 seenIV.setVisibility(View.VISIBLE);
                 notSeenIV.setVisibility(View.GONE);
             } else {
                 seenIV.setVisibility(View.GONE);
                 notSeenIV.setVisibility(View.VISIBLE);
             }
-
-            if (user.getImageURL().equals(Constants.KEY_IMAGE_URL_DEFAULT)) {
-                defaultProfileTV.setVisibility(View.VISIBLE);
-                defaultProfileTV.setText(user.getUserName().substring(0, 1));
-            } else {
-                profileIV.setVisibility(View.VISIBLE);
-                Glide.with(context)
-                        .load(user.getImageURL())
-                        .circleCrop()
-                        .into(profileIV);
-            }
-
-            profileIV.setOnClickListener(v -> showProfileCard(user));
-            defaultProfileTV.setOnClickListener(v -> showProfileCard(user));
-
-            usernameTV.setText(user.getUserName());
-            previewMessageTV.setText(message.getMessage());
-
-            //Date
-            SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-            Date currentDay =  new Date(System.currentTimeMillis());
-            Date chatDay = new Date(Long.parseLong(message.getTimestamp()));
-            if (formatter.format(currentDay).equals(formatter.format(chatDay))) {
-                dateLastMesTV.setText(DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault())
-                        .format(chatDay)
-                );
-            } else {
-                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy", Locale.getDefault());
-                dateLastMesTV.setText(dateFormat.format(Long.valueOf(message.getTimestamp())));
-            }//
-
+            usernameTV.setText(remoteUser.getUserName());
+            previewMessageTV.setText(recentChat.getLastMessage());
             itemView.setOnClickListener(v -> {
                 Intent i = new Intent(context, ChatActivity.class);
-                i.putExtra(Constants.INTENT_USER, user);
+                i.putExtra(Constants.INTENT_USER, remoteUser);
                 context.startActivity(i);
             });
+        }
+    }
+
+    private void bindProfilePic(TextView defaultProfileTV, ImageView profileIV, User remoteUser) {
+        if (remoteUser.getImageURL().equals(Constants.KEY_IMAGE_URL_DEFAULT)) {
+            defaultProfileTV.setOnClickListener(v -> showProfileCard(remoteUser));
+            defaultProfileTV.setVisibility(View.VISIBLE);
+            defaultProfileTV.setText(remoteUser.getUserName().substring(0, 1));
+        } else {
+            profileIV.setOnClickListener(v -> showProfileCard(remoteUser));
+            profileIV.setVisibility(View.VISIBLE);
+            Glide.with(context)
+                    .load(remoteUser.getImageURL())
+                    .circleCrop()
+                    .into(profileIV);
+        }
+    }
+
+    private void bindUserStatus(ImageView onlineIV, ImageView offlineIV, User remoteUser) {
+        if (remoteUser.getLastSeen().equals(Constants.KEY_LAST_SEEN_ONLINE)) {
+            onlineIV.setVisibility(View.VISIBLE);
+            offlineIV.setVisibility(View.GONE);
+        } else {
+            onlineIV.setVisibility(View.GONE);
+            offlineIV.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void bindDate(RecentChat recentChat, TextView dateLastMesTV) {
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        Date currentDay =  new Date(System.currentTimeMillis());
+        Date chatDay = new Date(recentChat.getTimestamp());
+        if (formatter.format(currentDay).equals(formatter.format(chatDay))) {
+            dateLastMesTV.setText(DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault())
+                    .format(chatDay)
+            );
+        } else {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy", Locale.getDefault());
+            dateLastMesTV.setText(dateFormat.format(recentChat.getTimestamp()));
         }
     }
 }
