@@ -2,9 +2,11 @@ package com.example.videomeeting.fragments;
 
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -43,6 +45,7 @@ public class SearchMessageFragment extends Fragment {
     private TextView notFoundTV;
     private RecyclerView searchMessageRV;
     private MaterialCardView searchTipCV;
+    private ProgressBar searchPB;
 
     private List<Message> messageList;
     private List<User> userList;
@@ -65,6 +68,7 @@ public class SearchMessageFragment extends Fragment {
     private void setupRV(View view) {
         messageList = new ArrayList<>();
         userList = new ArrayList<>();
+        searchPB = view.findViewById(R.id.searchPB);
         searchMessageRV = view.findViewById(R.id.searchMessageRV);
         searchMessageRV.setHasFixedSize(true);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
@@ -76,6 +80,7 @@ public class SearchMessageFragment extends Fragment {
     public void searchMessage(String query) {
         messageList.clear();
         userList.clear();
+        setViewsVisibility(View.GONE, View.GONE, View.GONE, View.VISIBLE);
 
         if (query != null && !TextUtils.isEmpty(query)) {
             messagesRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -112,6 +117,7 @@ public class SearchMessageFragment extends Fragment {
                                                 user.setId(snapshot.getKey());
                                                 userList.add(user);
                                                 checkList();
+                                                Log.e("length", messageList.size()+"");
                                             }
 
                                             @Override
@@ -119,13 +125,13 @@ public class SearchMessageFragment extends Fragment {
                                             }
                                         });
                                     } else {
-                                        setViewsVisibility(View.GONE, View.GONE, View.VISIBLE);
+                                        setViewsVisibility(View.GONE, View.GONE, View.VISIBLE, View.GONE);
                                     }
                                 }
                             }
                         }
                     } else {
-                        setViewsVisibility(View.GONE, View.GONE, View.VISIBLE);
+                        setViewsVisibility(View.GONE, View.GONE, View.VISIBLE, View.GONE);
                     }
                 }
 
@@ -134,23 +140,20 @@ public class SearchMessageFragment extends Fragment {
                 }
             });
         } else {
-            setViewsVisibility(View.GONE, View.VISIBLE, View.GONE);
+            setViewsVisibility(View.GONE, View.VISIBLE, View.GONE, View.GONE);
         }
     }
 
-    private void setViewsVisibility(int searchVis, int searchTipVis, int notFoundVis) {
+    private void setViewsVisibility(int searchVis, int searchTipVis, int notFoundVis, int pbVis) {
         searchMessageRV.setVisibility(searchVis);
         searchTipCV.setVisibility(searchTipVis);
         notFoundTV.setVisibility(notFoundVis);
+        searchPB.setVisibility(pbVis);
     }
 
     private void checkList() {
-        if (messageList.size() > 0) {
-            refreshRV(messageList, userList);
-            setViewsVisibility(View.VISIBLE, View.GONE, View.GONE);
-        } else {
-            setViewsVisibility(View.GONE, View.GONE, View.VISIBLE);
-        }
+        refreshRV(messageList, userList);
+        setViewsVisibility(View.VISIBLE, View.GONE, View.GONE, View.GONE);
     }
 
     private void refreshRV(@NotNull List<Message> searchedMessages,

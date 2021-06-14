@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,15 +39,15 @@ public class RecentCallsAdapter extends RecyclerView.Adapter<RecentCallsAdapter.
     private final CallsListener callsListener = new CallsListener();
     private final Context context;
     private final List<User> userList;
-    private final Map<String, Call> callMap;
+    private final List<Call> callList;
 
     private final List<User> selectedUsers;
     private Dialog profileDG;
 
-    public RecentCallsAdapter(Context context, List<User> userList, Map<String, Call> callMap) {
+    public RecentCallsAdapter(Context context, List<User> userList, List<Call> callList) {
         this.context = context;
         this.userList = userList;
-        this.callMap = callMap;
+        this.callList = callList;
         selectedUsers = new ArrayList<>();
     }
 
@@ -64,9 +65,8 @@ public class RecentCallsAdapter extends RecyclerView.Adapter<RecentCallsAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull CallViewHolder holder, int position) {
-        String keyMessage = (String) callMap.keySet().toArray()[position];
         holder.setIsRecyclable(false);
-        holder.bind(userList.get(position), callMap.get(keyMessage));
+        holder.bind(userList.get(position), callList.get(position));
         profileDG = new Dialog(context, R.style.ThemeDialog);
     }
 
@@ -95,8 +95,11 @@ public class RecentCallsAdapter extends RecyclerView.Adapter<RecentCallsAdapter.
         usernameTV.setText(user.getUserName());
 
         TextView aboutTV = profileDG.findViewById(R.id.aboutTV);
-        if (user.getAbout() != null) aboutTV.setText(user.getAbout());
-        else aboutTV.setVisibility(View.GONE);
+        if (user.getAbout() != null) {
+            aboutTV.setText(user.getAbout());
+        } else {
+            aboutTV.setVisibility(View.GONE);
+        }
 
         profileDG.findViewById(R.id.chatLY).setOnClickListener(v -> {
             Intent i = new Intent(context, ChatActivity.class);
@@ -113,7 +116,7 @@ public class RecentCallsAdapter extends RecyclerView.Adapter<RecentCallsAdapter.
 
     @Override
     public int getItemCount() {
-        return callMap.size();
+        return callList.size();
     }
 
     class CallViewHolder extends RecyclerView.ViewHolder {
@@ -156,7 +159,18 @@ public class RecentCallsAdapter extends RecyclerView.Adapter<RecentCallsAdapter.
                 SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yy, HH:mm", Locale.getDefault());
                 dateTV.setText(dateFormat.format(call.getTimestamp()));
 
-                usernameTV.setText(user.getUserName().replace("\n", ", "));
+                String[] usernamesTmp = user.getUserName().split("\n");
+                StringBuilder usernames = new StringBuilder();
+                int i = 0;
+                for (String users : usernamesTmp) {
+                    if (++i < usernamesTmp.length) {
+                        usernames.append(users).append(", ");
+                    } else {
+                        usernames.append(users);
+                    }
+                }
+                usernameTV.setText(usernames.toString());
+
                 usernameTV.setEllipsize(TextUtils.TruncateAt.MARQUEE);
                 usernameTV.setMarqueeRepeatLimit(-1);
                 usernameTV.setSelected(true);

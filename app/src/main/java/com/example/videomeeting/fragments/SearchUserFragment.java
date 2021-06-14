@@ -5,6 +5,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -35,6 +36,7 @@ public class SearchUserFragment extends Fragment {
     private TextView notFoundTV;
     private RecyclerView searchUserRV;
     private MaterialCardView searchTipCV;
+    private ProgressBar searchPB;
     private Map<String, User> userMap;
 
     @Override
@@ -48,6 +50,7 @@ public class SearchUserFragment extends Fragment {
 
     private void refreshRV(View view) {
         userMap = new HashMap<>();
+        searchPB = view.findViewById(R.id.searchPB);
         searchUserRV = view.findViewById(R.id.searchUserRV);
         searchUserRV.setHasFixedSize(true);
         searchUserRV.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -56,13 +59,14 @@ public class SearchUserFragment extends Fragment {
     public void searchUser(String query) {
         userMap.clear();
         boolean isUserNameValid = true;
+        setViewsVisibility(View.GONE, View.GONE, View.GONE, View.VISIBLE);
 
         String finalQuery = query.trim();
         if (finalQuery.isEmpty()) {
-            setViewsVisibility(View.GONE, View.VISIBLE, View.GONE);
+            setViewsVisibility(View.GONE, View.VISIBLE, View.GONE, View.GONE);
             isUserNameValid = false;
         } else if (finalQuery.length() < 4 || !finalQuery.matches("^[a-zA-Z0-9]+$")) {
-            setViewsVisibility(View.GONE, View.VISIBLE, View.GONE);
+            setViewsVisibility(View.GONE, View.VISIBLE, View.GONE, View.GONE);
             isUserNameValid = false;
         }
 
@@ -90,18 +94,19 @@ public class SearchUserFragment extends Fragment {
         }
     }
 
-    private void setViewsVisibility(int searchVis, int searchTipVis, int notFoundVis) {
+    private void setViewsVisibility(int searchVis, int searchTipVis, int notFoundVis, int pbVis) {
         searchUserRV.setVisibility(searchVis);
         searchTipCV.setVisibility(searchTipVis);
         notFoundTV.setVisibility(notFoundVis);
+        searchPB.setVisibility(pbVis);
     }
 
     private void checkList() {
         if (userMap.size() > 0) {
             refreshRV(userMap);
-            setViewsVisibility(View.VISIBLE, View.GONE, View.GONE);
+            setViewsVisibility(View.VISIBLE, View.GONE, View.GONE, View.GONE);
         } else {
-            setViewsVisibility(View.GONE, View.GONE, View.VISIBLE);
+            setViewsVisibility(View.GONE, View.GONE, View.VISIBLE, View.GONE);
         }
     }
 

@@ -192,7 +192,7 @@ public class InvitationOutgoingActivity extends AppCompatActivity {
         try {
             JSONArray tokens = new JSONArray();
 
-            if (receiverToken != null) {
+            if (receivers != null) {
                 tokens.put(receiverToken);
             }
 
@@ -209,7 +209,6 @@ public class InvitationOutgoingActivity extends AppCompatActivity {
                 defaultProfileTV.setVisibility(View.GONE);
                 usernameTV.setText(usernames.toString());
             }
-            Log.e("smtnh else", "to say");
 
             tokens.put(receiverToken);
 
@@ -220,8 +219,7 @@ public class InvitationOutgoingActivity extends AppCompatActivity {
             data.put(REMOTE_MSG_CALL_TYPE, callType);
             data.put(KEY_USER_ID, CURRENT_USER.getId());
             if (isGroup) {
-                String usernamesString = usernames.append(CURRENT_USER.getUserName()).toString();
-                data.put(KEY_USERNAME, usernamesString);
+                data.put(KEY_USERNAME, usernames.toString());
             } else {
                 data.put(KEY_USERNAME, CURRENT_USER.getUserName());
             }
@@ -241,10 +239,9 @@ public class InvitationOutgoingActivity extends AppCompatActivity {
             timestamp = String.valueOf(System.currentTimeMillis());
             Call call;
             if (isGroup) {
-                String usernamesString = usernames.append(CURRENT_USER.getUserName()).toString();
                 call = new Call(
-                        usernamesString,
-                        usernamesString,
+                        usernames.toString(),
+                        usernames.toString(),
                         false,
                         callType
                 );

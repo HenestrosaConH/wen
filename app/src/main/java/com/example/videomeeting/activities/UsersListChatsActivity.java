@@ -8,11 +8,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.videomeeting.R;
 import com.example.videomeeting.adapters.recyclerviews.UsersListChatsAdapter;
 import com.example.videomeeting.models.User;
+import com.facebook.shimmer.ShimmerFrameLayout;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
@@ -23,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import static com.example.videomeeting.utils.Constants.CURRENT_USER;
 import static com.example.videomeeting.utils.Constants.KEY_COLLECTION_USERS;
@@ -35,6 +36,7 @@ public class UsersListChatsActivity extends AppCompatActivity {
     private TextView errorMessageTV;
     private CardView noContactsCV;
     private RecyclerView allUsersRV;
+    private ShimmerFrameLayout shimmerLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +54,7 @@ public class UsersListChatsActivity extends AppCompatActivity {
 
     private void setupRV() {
         usersList = new ArrayList<>();
+        shimmerLayout = findViewById(R.id.shimmerLayout);
         usersListChatsAdapter = new UsersListChatsAdapter(UsersListChatsActivity.this, usersList);
         allUsersRV = findViewById(R.id.allUsersRV);
         allUsersRV.setLayoutManager(new LinearLayoutManager(UsersListChatsActivity.this));
@@ -64,13 +67,12 @@ public class UsersListChatsActivity extends AppCompatActivity {
     private void getContacts() {
         if (CURRENT_USER.getContacts() != null) {
             usersList.clear();
-            for (Map.Entry<String, Boolean> contactedUser : CURRENT_USER.getContacts().entrySet()) {
-                if (contactedUser.getValue()) {
-                    getContactData(contactedUser.getKey());
-                }
+            changeViewsVisibility(View.GONE, View.GONE, View.GONE, View.VISIBLE);
+            for (Map.Entry<String, Boolean> contact : CURRENT_USER.getContacts().entrySet()) {
+                getContactData(contact.getKey());
             }
         } else {
-            changeViewsVisibility(View.GONE, View.GONE, View.VISIBLE);
+            changeViewsVisibility(View.GONE, View.GONE, View.VISIBLE, View.GONE);
         }
     }
 
@@ -89,7 +91,7 @@ public class UsersListChatsActivity extends AppCompatActivity {
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         errorMessageTV.setText(String.format("%s", getString(R.string.no_users_available)));
-                        changeViewsVisibility(View.GONE, View.VISIBLE, View.GONE);
+                        changeViewsVisibility(View.GONE, View.VISIBLE, View.GONE, View.GONE);
                     }
                 });
     }
@@ -98,9 +100,9 @@ public class UsersListChatsActivity extends AppCompatActivity {
         if (usersList.size() > 0) {
             sortListAlphab();
             usersListChatsAdapter.notifyDataSetChanged();
-            changeViewsVisibility(View.VISIBLE, View.GONE, View.GONE);
+            changeViewsVisibility(View.VISIBLE, View.GONE, View.GONE, View.GONE);
         } else {
-            changeViewsVisibility(View.GONE, View.GONE, View.VISIBLE);
+            changeViewsVisibility(View.GONE, View.GONE, View.VISIBLE, View.GONE);
         }
     }
 
@@ -112,10 +114,11 @@ public class UsersListChatsActivity extends AppCompatActivity {
         });
     }
 
-    private void changeViewsVisibility(int allUsersVis, int errorMessageVis, int noContactsVis) {
+    private void changeViewsVisibility(int allUsersVis, int errorMessageVis, int noContactsVis, int shimmerVis) {
         allUsersRV.setVisibility(allUsersVis);
         errorMessageTV.setVisibility(errorMessageVis);
         noContactsCV.setVisibility(noContactsVis);
+        shimmerLayout.setVisibility(shimmerVis);
     }
 
     @Override

@@ -86,6 +86,7 @@ public class NotificationsListener extends FirebaseMessagingService {
         String type = remoteMessage.getData().get(INTENT_CALL_TYPE);
 
         if (type != null) {
+            Log.e("hola", "hola");
             if (type.equals(REMOTE_MSG_INVITATION)) {
                 Intent intent = new Intent(getApplicationContext(), InvitationIncomingActivity.class);
                 putExtras(intent, remoteMessage);

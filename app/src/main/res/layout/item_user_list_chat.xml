@@ -29,7 +29,7 @@
         android:background="@drawable/background_user_icon"
         android:fontFamily="@font/ubuntu_bold"
         android:gravity="center"
-        android:visibility="gone"
+        android:visibility="visible"
         android:includeFontPadding="false"
         android:textAllCaps="true"
         android:textColor="@color/colorTextIcon"

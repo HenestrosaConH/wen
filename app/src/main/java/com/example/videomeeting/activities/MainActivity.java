@@ -73,29 +73,32 @@ public class MainActivity extends AppCompatActivity {
             switch (position) {
                 case 0: {
                     tab.setText(R.string.chats);
+                    /*
                     BadgeDrawable badgeDrawable = tab.getOrCreateBadge();
                     badgeDrawable.setBackgroundColor(
                             ContextCompat.getColor(MainActivity.this, R.color.colorBackground)
                     );
                     badgeDrawable.setVisible(true);
                     badgeDrawable.setNumber(100);
-                    badgeDrawable.setMaxCharacterCount(3);
+                    badgeDrawable.setMaxCharacterCount(3);*/
                     break;
                 } case 1: {
                     tab.setText(R.string.calls);
+                    /*
                     BadgeDrawable badgeDrawable = tab.getOrCreateBadge();
                     badgeDrawable.setBackgroundColor(
                             ContextCompat.getColor(MainActivity.this, R.color.colorBackground)
                     );
                     badgeDrawable.setVisible(true);
                     badgeDrawable.setNumber(100);
-                    badgeDrawable.setMaxCharacterCount(3);
+                    badgeDrawable.setMaxCharacterCount(3);*/
                     break;
                 }
             }
         });
         tabLayoutMediator.attach();
 
+        /*
         mainVP2.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
@@ -103,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
                 BadgeDrawable badgeDrawable = mainTL.getTabAt(position).getOrCreateBadge();
                 badgeDrawable.setVisible(false);
             }
-        });
+        });*/
     }
 
     private void setCurrentUserID() {

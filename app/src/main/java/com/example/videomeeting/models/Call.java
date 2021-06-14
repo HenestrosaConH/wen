@@ -4,7 +4,7 @@ import com.google.firebase.database.Exclude;
 
 public class Call {
 
-    String callerID, receiverID, callType;
+    String callerID, receiverID, callType, searchID;
     long timestamp;
     boolean missed;
 
@@ -52,5 +52,13 @@ public class Call {
     @Exclude
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
+    }
+    @Exclude
+    public String getSearchID() {
+        return searchID;
+    }
+    @Exclude
+    public void setSearchID(String searchID) {
+        this.searchID = searchID;
     }
 }

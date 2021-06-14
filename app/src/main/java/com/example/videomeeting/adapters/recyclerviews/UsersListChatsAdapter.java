@@ -30,7 +30,6 @@ public class UsersListChatsAdapter extends RecyclerView.Adapter<UsersListChatsAd
     public final List<User> userList;
     private final CallsListener callsListener = new CallsListener();
     private Dialog profileDG;
-    private User user;
 
     public UsersListChatsAdapter(Context context, List<User> userList) {
         this.context = context;
@@ -51,12 +50,12 @@ public class UsersListChatsAdapter extends RecyclerView.Adapter<UsersListChatsAd
 
     @Override
     public void onBindViewHolder(@NonNull UsersChatViewHolder holder, int position) {
-        user = userList.get(position);
-        holder.setChatData();
+        User user = userList.get(position);
+        holder.bindUser(user);
         profileDG = new Dialog(context, R.style.ThemeDialog);
     }
 
-    private void showProfileCard() {
+    private void showProfileCard(User user) {
         profileDG.setContentView(R.layout.dialog_profile);
         profileDG.setCancelable(true);
 
@@ -114,11 +113,11 @@ public class UsersListChatsAdapter extends RecyclerView.Adapter<UsersListChatsAd
             profileIV = itemView.findViewById(R.id.profileIV);
         }
 
-        void setChatData() {
+        void bindUser(User user) {
             if (user.getImageURL().equals(Constants.KEY_IMAGE_URL_DEFAULT)) {
-                defaultProfileTV.setVisibility(View.VISIBLE);
                 defaultProfileTV.setText(user.getUserName().substring(0, 1));
             } else {
+                defaultProfileTV.setVisibility(View.GONE);
                 profileIV.setVisibility(View.VISIBLE);
                 Glide.with(context)
                         .load(user.getImageURL())
@@ -126,11 +125,11 @@ public class UsersListChatsAdapter extends RecyclerView.Adapter<UsersListChatsAd
                         .into(profileIV);
             }
 
-            profileIV.setOnClickListener(v -> showProfileCard());
-            defaultProfileTV.setOnClickListener(v -> showProfileCard());
-
             usernameTV.setText(user.getUserName());
             aboutTV.setText(user.getAbout());
+
+            profileIV.setOnClickListener(v -> showProfileCard(user));
+            defaultProfileTV.setOnClickListener(v -> showProfileCard(user));
 
             itemView.setOnClickListener(v -> {
                 Intent i = new Intent(context, ChatActivity.class);

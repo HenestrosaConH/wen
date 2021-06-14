@@ -38,6 +38,13 @@
 
     </com.google.android.material.card.MaterialCardView>
 
+    <ProgressBar
+        android:id="@+id/searchPB"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_gravity="center"/>
+
     <TextView
         android:id="@+id/notFoundTV"
         android:layout_width="match_parent"

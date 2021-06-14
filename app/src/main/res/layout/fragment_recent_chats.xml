@@ -7,6 +7,30 @@
     android:background="@color/colorBackground"
     tools:context=".fragments.RecentChatsFragment">
 
+    <com.facebook.shimmer.ShimmerFrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/shimmerLayout">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <include layout="@layout/item_shimmer"/>
+            <include layout="@layout/item_shimmer"/>
+            <include layout="@layout/item_shimmer"/>
+            <include layout="@layout/item_shimmer"/>
+            <include layout="@layout/item_shimmer"/>
+            <include layout="@layout/item_shimmer"/>
+            <include layout="@layout/item_shimmer"/>
+            <include layout="@layout/item_shimmer"/>
+            <include layout="@layout/item_shimmer"/>
+
+        </LinearLayout>
+
+    </com.facebook.shimmer.ShimmerFrameLayout>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recentChatsRV"
         android:layout_width="match_parent"

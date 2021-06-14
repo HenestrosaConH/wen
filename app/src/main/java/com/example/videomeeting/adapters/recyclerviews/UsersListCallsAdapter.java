@@ -63,7 +63,7 @@ public class UsersListCallsAdapter extends RecyclerView.Adapter<UsersListCallsAd
     @Override
     public void onBindViewHolder(@NonNull UsersCallViewHolder holder, int position) {
         User user = userList.get(position);
-        holder.setCallData(user);
+        holder.bindUser(user);
         profileDG = new Dialog(context, R.style.ThemeDialog);
     }
 
@@ -139,11 +139,11 @@ public class UsersListCallsAdapter extends RecyclerView.Adapter<UsersListCallsAd
             itemCallLY = itemView.findViewById(R.id.itemCallLY);
         }
 
-        void setCallData(User user) {
+        void bindUser(User user) {
             if (user.getImageURL().equals(Constants.KEY_IMAGE_URL_DEFAULT)) {
                 defaultProfileTV.setText(user.getUserName().substring(0, 1));
-                defaultProfileTV.setVisibility(View.VISIBLE);
             } else {
+                defaultProfileTV.setVisibility(View.GONE);
                 profileIV.setVisibility(View.VISIBLE);
                 Glide.with(context)
                         .load(user.getImageURL())
@@ -151,7 +151,6 @@ public class UsersListCallsAdapter extends RecyclerView.Adapter<UsersListCallsAd
                         .into(profileIV);
             }
 
-            defaultProfileTV.setText(user.getUserName().substring(0,1));
             usernameTV.setText(user.getUserName());
             aboutTV.setText(user.getAbout());
 

@@ -76,7 +76,7 @@
     <string name="available">Disponible</string>
     <string name="profile_image_will_be_removed">Tu imagen de perfil se borrará</string>
     <string name="cannot_edit_the_number">Ups, no puedes editar tu número de teléfono</string>
-    <string name="last_seen">Hora de últ. vez</string>
+    <string name="last_seen">últ. vez</string>
     <string name="everyone">Todos</string>
     <string name="my_contacts">Mis contactos</string>
     <string name="nobody">Nadie</string>

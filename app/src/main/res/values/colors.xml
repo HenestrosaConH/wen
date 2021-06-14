@@ -23,4 +23,6 @@
     <color name="colorMessageReceived">#1F2963</color>
     <!-- Scrollbar background -->
     <color name="colorPrimaryTransparent">#331F2963</color>
+    <!-- Shimmer -->
+    <color name="colorShimmer">#DADADA</color>
 </resources>

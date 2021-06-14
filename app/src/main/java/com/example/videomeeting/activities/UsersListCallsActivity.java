@@ -7,6 +7,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,6 +21,7 @@ import com.example.videomeeting.R;
 import com.example.videomeeting.adapters.recyclerviews.UsersListCallsAdapter;
 import com.example.videomeeting.listeners.OnMultipleCallsListener;
 import com.example.videomeeting.models.User;
+import com.facebook.shimmer.ShimmerFrameLayout;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
@@ -48,6 +50,7 @@ public class UsersListCallsActivity extends AppCompatActivity implements OnMulti
     private TextView errorMessageTV;
     private CardView noContactsCV;
     private RecyclerView allUsersRV;
+    private ShimmerFrameLayout shimmerLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +68,7 @@ public class UsersListCallsActivity extends AppCompatActivity implements OnMulti
 
     private void setupRV() {
         usersList = new ArrayList<>();
+        shimmerLayout = findViewById(R.id.shimmerLayout);
         usersListCallsAdapter = new UsersListCallsAdapter(UsersListCallsActivity.this, usersList, this);
         allUsersRV = findViewById(R.id.allUsersRV);
         allUsersRV.setLayoutManager(new LinearLayoutManager(UsersListCallsActivity.this));
@@ -77,13 +81,12 @@ public class UsersListCallsActivity extends AppCompatActivity implements OnMulti
     private void getContacts() {
         if (CURRENT_USER.getContacts() != null) {
             usersList.clear();
+            changeViewsVisibility(View.GONE, View.GONE, View.GONE, View.VISIBLE);
             for (Map.Entry<String, Boolean> contactedUser : CURRENT_USER.getContacts().entrySet()) {
-                if (contactedUser.getValue()) {
-                    getContactData(contactedUser.getKey());
-                }
+                getContactData(contactedUser.getKey());
             }
         } else {
-            changeViewsVisibility(View.GONE, View.GONE, View.VISIBLE);
+            changeViewsVisibility(View.GONE, View.GONE, View.VISIBLE, View.GONE);
         }
     }
 
@@ -102,7 +105,7 @@ public class UsersListCallsActivity extends AppCompatActivity implements OnMulti
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         errorMessageTV.setText(String.format("%s", getString(R.string.no_users_available)));
-                        changeViewsVisibility(View.GONE, View.VISIBLE, View.GONE);
+                        changeViewsVisibility(View.GONE, View.VISIBLE, View.GONE, View.GONE);
                     }
                 });
     }
@@ -111,9 +114,9 @@ public class UsersListCallsActivity extends AppCompatActivity implements OnMulti
         if (usersList.size() > 0) {
             sortListAlphab();
             usersListCallsAdapter.notifyDataSetChanged();
-            changeViewsVisibility(View.VISIBLE, View.GONE, View.GONE);
+            changeViewsVisibility(View.VISIBLE, View.GONE, View.GONE, View.GONE);
         } else {
-            changeViewsVisibility(View.GONE, View.GONE, View.VISIBLE);
+            changeViewsVisibility(View.GONE, View.GONE, View.VISIBLE, View.GONE);
         }
     }
 
@@ -125,10 +128,11 @@ public class UsersListCallsActivity extends AppCompatActivity implements OnMulti
         });
     }
 
-    private void changeViewsVisibility(int allUsersVis, int errorMessageVis, int noContactsVis) {
+    private void changeViewsVisibility(int allUsersVis, int errorMessageVis, int noContactsVis, int shimmerVis) {
         allUsersRV.setVisibility(allUsersVis);
         errorMessageTV.setVisibility(errorMessageVis);
         noContactsCV.setVisibility(noContactsVis);
+        shimmerLayout.setVisibility(shimmerVis);
     }
 
     @Override
@@ -139,7 +143,6 @@ public class UsersListCallsActivity extends AppCompatActivity implements OnMulti
 
     @Override
     public void onMultipleUsersAction(Boolean isMultipleUsersSelected) {
-        //groupIT.setEnabled(isMultipleUsersSelected);
         isGroupEnabled = isMultipleUsersSelected;
     }
 
