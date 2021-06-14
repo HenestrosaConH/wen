@@ -172,6 +172,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
+                android:foreground="?android:selectableItemBackground"
                 android:fontFamily="@font/ubuntu_bold"
                 android:text="@string/resend_it"
                 android:textColor="@color/colorAccent"

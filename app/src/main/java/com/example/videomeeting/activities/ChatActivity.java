@@ -3,7 +3,6 @@ package com.example.videomeeting.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -127,11 +126,15 @@ public class ChatActivity extends AppCompatActivity {
             formatLastSeen(remoteUser.getLastSeen());
             shouldShareLastSeen = true;
         } else if (remoteUser.getLastSeenStatus().equals(KEY_LAST_SEEN_CONTACTS)) {
-            for (Map.Entry<String, Boolean> contactedUser : remoteUser.getContacts().entrySet()) {
-                if (contactedUser.getKey().equals(FIREBASE_USER.getUid()) && contactedUser.getValue()) {
-                    shouldShareLastSeen = true;
-                    break;
+            if (remoteUser.getContacts() != null) {
+                for (Map.Entry<String, Boolean> contactedUser : remoteUser.getContacts().entrySet()) {
+                    if (contactedUser.getKey().equals(FIREBASE_USER.getUid()) && contactedUser.getValue()) {
+                        shouldShareLastSeen = true;
+                        break;
+                    }
                 }
+            } else {
+                shouldShareLastSeen = false;
             }
         }
     }

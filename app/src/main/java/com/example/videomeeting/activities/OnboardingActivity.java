@@ -14,7 +14,6 @@ import androidx.viewpager.widget.ViewPager;
 import com.example.videomeeting.R;
 import com.example.videomeeting.adapters.pagers.OnboardingAdapter;
 import com.example.videomeeting.models.OnboardingItem;
-import com.example.videomeeting.utils.Constants;
 import com.example.videomeeting.utils.PreferenceManager;
 import com.google.android.material.tabs.TabLayout;
 
